@@ -11,18 +11,21 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Set up Google Cloud auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: "${ secrets.GCP_SA_KEY }"
-      - name: Build and push docker image
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
+
+      - name: Build and push Docker image
         run: |
-          gcloud builds submit --tag gcr.io/akilahstack/akilah-api
+          gcloud builds submit --tag gcr.io/akilahstack/akilahapigateway
+
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy akilah-api \
-            -image gcr.io/akilahstack/akilah-api \
-            -service-account frontendstage-actions@akilahstack.gcp.cloud account.com \
-            -platform managed \
-            -region us-central1 \
-            -allow-unauthenticated
+          gcloud run deploy akilahapigateway \
+            --image gcr.io/akilahstack/akilahapigateway \
+            --service-account 858627689875-compute@developer.gserviceaccount.com \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated
