@@ -4,6 +4,10 @@ const app = express();
 
 app.use(express.json());
 
+app.get('/',(req, res) => {
+  res.send('Server is running.');
+});
+
 app.post('/notion', (req, res) => {
   console.log('Received Notion request with body', req.body);
   res.status(200).send({ message: 'Notion route hit!' });
