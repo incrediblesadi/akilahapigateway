@@ -14,6 +14,17 @@ app.post('/gpt', (req, res) => {
   res.status(200).send({ message: 'GPT route hit!' });
 });
 
+app.get('/ping/trace', (req, res) => {
+  res.status(200).send({
+    status: 'ok',
+    trace: {
+      gateway_received: true,
+      handler_invoked: 'traceHandler',
+      timestamp: new Date().toISOString()
+    }
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`API Gateway running on port ${PORT}`);
 });
