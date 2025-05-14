@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@vs
+        uses: actions/checkout@v3
       - name: Set up Google Cloud auth
         uses: google-github-actions/auth@vb
         with:
