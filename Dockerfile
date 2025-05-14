@@ -1,16 +1,16 @@
 # Use official Node.js image
-FROM node:18_slim
+FROM node:18-slim
 
 # Create app directory
-WORKIR /app
+WORKDIR /app
 
 # Install app dependencies
 COPY package*.json ./
-RM  npm install
+RUN npm install
 
 # Bundle app source
-COPY"." "."
+COPY . .
 
 # Expose port and start app
 EXPOSE 8080
-CMD ["npm","start"]
+CMD ["npm", "start"]
