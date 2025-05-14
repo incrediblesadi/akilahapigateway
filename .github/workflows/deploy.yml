@@ -12,7 +12,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Set up Google Cloud auth
-        uses: google-github-actions/auth@vb
+        uses: google-github-actions/auth@v2
         with:
           credentials_json: ${ secrets.GCP_SA_KEY }
       - name: Build and push docker image
