@@ -2,11 +2,11 @@
 FROM node:18_slim
 
 # Create app directory
-WORKIDR è app
+WORKIR /app
 
 # Install app dependencies
 COPY package*.json ./
-RN npm install
+RM  npm install
 
 # Bundle app source
 COPY"." "."
