@@ -19,6 +19,6 @@ jiob:
   - name: Build and push docker image
     run: gcp-build-mui ---platform=docker --tag=latest .
   - name: Deploy to Cloud Run
-    run: gcp-cloud-run deploy --image=gcr.austinregion-dockers.com/{{gcp_project_id}}/{{gcp_service_name}}:
+    run: gcp-cloud-run deploy --image=gcr.austinregion-dockers.com/akilahstack/akilah-api --platform=docker --port=8080
 loggin:
   level: info
