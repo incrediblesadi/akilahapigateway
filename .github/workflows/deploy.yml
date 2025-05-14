@@ -22,6 +22,7 @@ jobs:
         run: |
           gcloud run deploy akilah-api \
             -image gcr.io/akilahstack/akilah-api \
+            -service-account frontendstage-actions@akilahstack.gcp.cloud account.com \
             -platform managed \
             -region us-central1 \
             -allow-unauthenticated
