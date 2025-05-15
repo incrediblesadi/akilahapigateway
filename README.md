@@ -18,6 +18,10 @@ A locally tested API Gateway deployed to Cloud Run with auto-scaling, GitHub act
 - Region: `us-central1`
 - Live at: https://akilahapigateway-858627689875.us-central1.run.app
 
+- Alrenate service: `firebase-adminsdk-fbsvc`
+- Live at: https://firebase-adminsdk-fbsvc-858627689875.us-central1.run.app
+- Purpose: Used by Firebase infrastructure or additional config (not traffic)
+
 ## Routes: 
 
 - /gbt
@@ -49,4 +53,3 @@ A locally tested API Gateway deployed to Cloud Run with auto-scaling, GitHub act
 - Fallback route "/
  - Make sure template strings like this `  `console.log(`application running on port ${PORT}`)` `
 - Always look for "Received GTP request" logs in Cloud Logs
-
