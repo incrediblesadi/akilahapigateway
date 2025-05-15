@@ -29,7 +29,7 @@ router.post('/notes', async (req, res) => {
 
     res.status(200).send({ status: 'logged', timestamp: isoTimestamp });
   } catch (error) {
-    console.error('Note logging error:', openerror);
+    console.error('Note logging error:', error);
     res.status(500).send({ error: 'Failed to log note' });
   }
 });
