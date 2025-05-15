@@ -1,6 +1,6 @@
 const express = require('express');
 const { DateTime } = require('luxon');
-const db = require('../../firebase');
+const db = require('../firebase');
 
 const router = express.Router();
 
