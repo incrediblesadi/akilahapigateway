@@ -8,7 +8,6 @@ router.post('/logger', async (req, res) => {
   try {
     const nowEastern = DateTime.now().setZone('America/New_York').toISO();
     const logPath = `0001currentsession/99serverlogs/${nowEastern}`;
-
     const result = req.body.result || 'No result provided';
 
     await db.ref(logPath).set(result);
