@@ -1,5 +1,5 @@
 const express = require('express');
-const firebaseLogger = require('./firebase/logger');
+const firebaseLogger = require('./logger');
 
 const router = express.Router();
 
