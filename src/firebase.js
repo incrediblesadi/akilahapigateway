@@ -5,8 +5,9 @@ try {
     credential: admin.credential.applicationDefault(),
     databaseURL: 'https://sadiworkspace.firebaseio.com'
   });
-} catch (e) {
-  console.error('Firebase init error:', e);
+  console.log('✅ Firebase initialized');
+} catch (error) {
+  console.error('🔥 Firebase init error:', error);
 }
 
 const db = admin.database();
