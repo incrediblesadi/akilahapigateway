@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post('/logger', async (req, res) => {
   try {
-    const nowEastern = DateTime.now().setZone('America/New_York').toISO();
+    const nowEastern = DateTime.now().setZone('America/New_York').toFormat("yyyy-MM-dd_HHmmss");
     const logPath = `0001currentsession/99serverlogs/${nowEastern}`;
     const result = req.body.result || 'No result provided';
 
