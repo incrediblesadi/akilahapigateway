@@ -1,6 +1,6 @@
 const express = require('express');
 const { DateTime } = require('luxon');
-const db = require('../../firebase');
+const db = require('../firebase');  // ✅ Correct relative path
 
 const router = express.Router();
 
@@ -12,7 +12,11 @@ router.post('/logger', async (req, res) => {
 
     await db.ref(logPath).set(result);
 
-    res.status(200).send({ status: 'logged', timestamp: nowEastern, path: logPath });
+    res.status(200).send({
+      status: 'logged',
+      timestamp: nowEastern,
+      path: logPath
+    });
   } catch (error) {
     console.error('Firebase logging error:', error);
     res.status(500).send({ error: 'Failed to write to Firebase' });
