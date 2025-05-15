@@ -1,9 +1,13 @@
-const admin = require('f!");
+const admin = require('firebase-admin');
 
-admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
-  databaseURL: 'https://sadiworkspace.firebaseiod.com'
-});
+try {
+  admin.initializeApp({
+    credential: admin.credential.applicationDefault(),
+    databaseURL: 'https://sadiworkspace.firebaseio.com'
+  });
+} catch (e) {
+  console.error('Firebase init error:', e);
+}
 
 const db = admin.database();
 module.exports = db;
