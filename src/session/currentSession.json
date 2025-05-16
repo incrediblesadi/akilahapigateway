@@ -1,0 +1,76 @@
+{
+  "sessionId": "gpt-session-2025-05-15",
+  "timestamp": "2025-05-15T00:00:00Z",
+  "services": {
+    "notion": {
+      "pages": [
+        {
+          "id": "abc123",
+          "title": "Projects & Tasks",
+          "blockTypes": ["heading_2", "paragraph", "to_do", "callout"],
+          "blocks": [
+            {
+              "id": "blk-001",
+              "type": "heading_2",
+              "text": "Active Projects"
+            },
+            {
+              "id": "blk-002",
+              "type": "paragraph",
+              "text": "This page outlines our sprint tasks."
+            }
+          ],
+          "expandable": true
+        }
+    ],
+      "selectedPage": "abc123",
+      "actions": ["getOverview", "readBlock", "appendToPage", "editRequest", "createPage", "createBlock"]
+    },
+    "github": {
+      "repos": [{
+        "name": "akilahapigateway",
+        "branches": ["main", "dev"],
+        "issues": [{
+          "id": "#23",
+          "title": "Fix deploy script",
+          "status": "open"
+        }]
+      }],
+      "selectedRepo": "akilahapigateway",
+      "actions": ["listRepos", "getIssues", "createPR", "getBranches"]
+    },
+    "firebase": {
+      "paths": ["/logs", "/chat", "/notes"],
+      "selectedPath": "/chat",
+      "actions": ["readPath", "logMessage", "uploadFile"]
+    }
+  },
+  "navigation": {
+    "lastNode": "notion.pages[0].blocks[0]",
+    "lastAction": "appendToPage",
+    "history": [
+      "getOverview – selectPage",
+      "appendToPage ‑ block blk-003"
+    ]
+  },
+  "references": {
+    "editableBlocks": ["blk-002", "blk-003"],
+    "recentlyAppended": ["blk-004"],
+    "createdPages": ["ghi789"]
+  },
+  "constraints": {
+    "allowDeletion": false,
+    "requireApprovalForEdits": true,
+    "maxAppendPerPage": 5
+  },
+  "persistence": {
+    "storeTo": "firebase",
+    "archiveAt": "2025-05-16T00:00:00Z",
+    "postActions": ["pushSummaryToNotion", "emailTranscript"]
+  },
+  "tools": ["push_to_memory", "append_to_notion", "summarize_repo", "log_to_firebase", "create_new_page"],
+  "annotations": {
+    "reminders": ["Review latest GitHub issues", "Generate summary for Research Study page"],
+    "nextAction": "Create new section under Projects & Tasks for WebSocket progress"
+  }
+}
