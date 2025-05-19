@@ -15,10 +15,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Generate directory tree and update README
-        uses: andreasbm/readme-tree@main
+        uses: andreasbm/readme-tree@v1.0.2  # ✅ Use latest release version, not @main
         with:
-          path: '.'           # Root of the repo
-          readme-path: 'README.md' # File to update; change if your main README has a different name
+          path: '.'                 # Root of the repo
+          readme-path: 'README.md' # Adjust if using a different README
 
       - name: Commit and push changes
         run: |
