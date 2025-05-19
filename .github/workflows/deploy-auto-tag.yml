@@ -1,0 +1,57 @@
+name: Deploy + Auto-Tag + Changelog
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 0 * * *' # daily at midnight UTC
+
+jobs:
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build and deploy (Cloud Run or your own command)
+        run: |
+          echo "🛠️ Build and deployment logic goes here"
+
+      - name: Auto-tag new version
+        id: bump
+        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          latest=$(git describe --tags --abbrev=0 || echo "v0.0.0")
+          IFS='.' read -r major minor patch <<< "${latest/v/}"
+          new_tag="v$major.$minor.$((patch + 1))"
+          git tag $new_tag
+          git push origin $new_tag
+          echo "version=$new_tag" >> $GITHUB_OUTPUT
+
+      - name: Generate and commit CHANGELOG.md
+        run: |
+          git fetch --tags
+          last_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          echo "## Changes since $last_tag" > CHANGELOG.md
+          git log $last_tag..HEAD --pretty=format:"- %s" >> CHANGELOG.md
+          git add CHANGELOG.md
+          git commit -m "docs: update changelog for ${{ steps.bump.outputs.version }}" || echo "No changelog changes"
+          git push || echo "No changelog commit"
