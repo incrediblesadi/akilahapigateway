@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -16,10 +17,11 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
+
       - name: Set up Google Cloud auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: "${ secrets.GCP_SA_KEY }"
+          credentials_json: "${{ secrets.GCP_SA_KEY }}"
 
       - name: Build and deploy to Cloud Run
         id: deploy-step
@@ -33,13 +35,19 @@ jobs:
       - name: Write DEPLOY STATUS.md on failure
         if: failure()
         run: |
-          echo "# Deployment Failure" > "DEPLY STATUS.md"
-          echo "Time: $(date)" >> "DEPLOY STATUS.md"
+          echo "# Deployment Failure" > "DEPLOY STATUS.md"
+          echo "Time: $(date -u)" >> "DEPLOY STATUS.md"
           echo "Branch: ${{ github.ref_name }}" >> "DEPLOY STATUS.md"
           echo "Commit: ${{ github.sha }}" >> "DEPLOY STATUS.md"
+          echo "" >> "DEPLOY STATUS.md"
+          echo "## Error Summary" >> "DEPLOY STATUS.md"
+          echo "Deployment step failed. Check the Actions log for details." >> "DEPLOY STATUS.md"
 
+      - name: Commit DEPLOY STATUS.md if changed
+        if: failure()
+        run: |
           git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions@users.noreply.github.com"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add "DEPLOY STATUS.md"
-          git diff --cached || git commit -m "chore: add deploy failure status"
-          git diff --cached || git push
+          git diff --cached --quiet || git commit -m "chore: log deployment failure in DEPLOY STATUS.md"
+          git diff --cached --quiet || git push
