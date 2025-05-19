@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Generate directory tree and update README
-        uses: andreasbm/readme-tree@v1
+        uses: andreasbm/readme-tree@main
         with:
           path: '.'           # Root of the repo
           readme-path: 'README.md' # File to update; change if your main README has a different name
