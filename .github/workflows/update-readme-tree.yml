@@ -5,20 +5,24 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 0 * * *' # every day at midnight UTC
+    - cron: '0 0 * * *'
 
 jobs:
   update-readme:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Generate directory tree and update README
-        uses: andreasbm/readme-tree@v1.0.2  # ✅ Use latest release version, not @main
+        uses: andreasbm/readme-tree@v1.0.2
         with:
-          path: '.'                 # Root of the repo
-          readme-path: 'README.md' # Adjust if using a different README
+          path: '.'
+          readme-path: 'README.md'
+
+      - name: Ensure Git is installed
+        run: sudo apt-get update && sudo apt-get install -y git
 
       - name: Commit and push changes
         run: |
