@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -26,28 +29,29 @@ jobs:
       - name: Build and deploy to Cloud Run
         id: deploy-step
         run: |
+          set -e
           gcloud run deploy akilahapigateway \
             --image gcr.io/akilahstack/akilahapigateway \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated
 
-      - name: Write DEPLOY STATUS.md on failure
+      - name: Write DEPLOY_STATUS.md on failure
         if: failure()
         run: |
-          echo "# Deployment Failure" > "DEPLOY STATUS.md"
-          echo "Time: $(date -u)" >> "DEPLOY STATUS.md"
-          echo "Branch: ${{ github.ref_name }}" >> "DEPLOY STATUS.md"
-          echo "Commit: ${{ github.sha }}" >> "DEPLOY STATUS.md"
-          echo "" >> "DEPLOY STATUS.md"
-          echo "## Error Summary" >> "DEPLOY STATUS.md"
-          echo "Deployment step failed. Check the Actions log for details." >> "DEPLOY STATUS.md"
+          echo "# Deployment Failure" > "DEPLOY_STATUS.md"
+          echo "Time: $(date -u)" >> "DEPLOY_STATUS.md"
+          echo "Branch: ${{ github.ref_name }}" >> "DEPLOY_STATUS.md"
+          echo "Commit: ${{ github.sha }}" >> "DEPLOY_STATUS.md"
+          echo "" >> "DEPLOY_STATUS.md"
+          echo "## Error Summary" >> "DEPLOY_STATUS.md"
+          echo "Deployment step failed. Check the Actions log for details." >> "DEPLOY_STATUS.md"
 
-      - name: Commit DEPLOY STATUS.md if changed
+      - name: Commit DEPLOY_STATUS.md if changed
         if: failure()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add "DEPLOY STATUS.md"
-          git diff --cached --quiet || git commit -m "chore: log deployment failure in DEPLOY STATUS.md"
+          git add "DEPLOY_STATUS.md"
+          git diff --cached --quiet || git commit -m "chore: log deployment failure in DEPLOY_STATUS.md"
           git diff --cached --quiet || git push
