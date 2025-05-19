@@ -1,0 +1,45 @@
+name: Log Deploy Failures
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Set up Google Cloud auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: "${ secrets.GCP_SA_KEY }"
+
+      - name: Build and deploy to Cloud Run
+        id: deploy-step
+        run: |
+          gcloud run deploy akilahapigateway \
+            --image gcr.io/akilahstack/akilahapigateway \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated
+
+      - name: Write DEPLOY STATUS.md on failure
+        if: failure()
+        run: |
+          echo "# Deployment Failure" > "DEPLY STATUS.md"
+          echo "Time: $(date)" >> "DEPLOY STATUS.md"
+          echo "Branch: ${{ github.ref_name }}" >> "DEPLOY STATUS.md"
+          echo "Commit: ${{ github.sha }}" >> "DEPLOY STATUS.md"
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions@users.noreply.github.com"
+          git add "DEPLOY STATUS.md"
+          git diff --cached || git commit -m "chore: add deploy failure status"
+          git diff --cached || git push
