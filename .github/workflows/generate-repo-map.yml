@@ -13,24 +13,23 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install tree
-        run: sudo apt-get update && sudo apt-get install -y tree
+        run: sudo apt-get update > /dev/null && sudo apt-get install tree -y
 
       - name: Generate repo structure section
         run: |
           echo "## REPO STRUCTURE" > auto.md
-          echo '```bash' >> auto.md
-          tree -I 'node_modules|.git|github' -a >> auto.md
-          echo '```' >> auto.md
-
+          echo "```bash" >> auto.md
+          tree -I "node_modules|.git|github" -a >> auto.md
+          echo "```" >> auto.md
           echo "## File Summaries" >> auto.md
           find . -type f -name "*.js" | while read file; do
-            echo -e "\n### \`$file\`" >> auto.md
+            echo "\n## \`$file\`" >> auto.md
             head -n 2 "$file" >> auto.md
           done
 
       - name: Rebuild REPO MAP.md with preserved manual section
         run: |
-          awk '/^## REPO MAP.md auto-generated zone / { exit } { print }' "REPO MAP.md" || true > final.md
+          awk '/^## REPO MAP.md auto-generated zone/ { exit } { print }' "REPO MAP.md" || true > final.md
           echo "## REPO MAP.md auto-generated zone" >> final.md
           cat auto.md >> final.md
           mv final.md "REPO MAP.md"
