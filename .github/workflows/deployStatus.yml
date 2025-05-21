@@ -1,5 +1,4 @@
-name: Log Deploy Failures
-
+name: Log Deploy Status
 on:
   push:
     branches:
@@ -10,48 +9,14 @@ permissions:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Set up Google Cloud auth
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: "${{ secrets.GCP_SA_KEY }}"
-
-      - name: Build and deploy to Cloud Run
-        id: deploy-step
-        run: |
-          set -e
-          gcloud run deploy akilahapigateway \
-            --image gcr.io/akilahstack/akilahapigateway \
-            --platform managed \
-            --region us-central1 \
-            --allow-unauthenticated
-
-      - name: Write DEPLOY_STATUS.md on failure
-        if: failure()
-        run: |
-          echo "# Deployment Failure" > "DEPLOY_STATUS.md"
-          echo "Time: $(date -u)" >> "DEPLOY_STATUS.md"
-          echo "Branch: ${{ github.ref_name }}" >> "DEPLOY_STATUS.md"
-          echo "Commit: ${{ github.sha }}" >> "DEPLOY_STATUS.md"
-          echo "" >> "DEPLOY_STATUS.md"
-          echo "## Error Summary" >> "DEPLOY_STATUS.md"
-          echo "Deployment step failed. Check the Actions log for details." >> "DEPLOY_STATUS.md"
-
-      - name: Commit DEPLOY_STATUS.md if changed
-        if: failure()
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add "DEPLOY_STATUS.md"
-          git diff --cached --quiet || git commit -m "chore: log deployment failure in DEPLOY_STATUS.md"
-          git diff --cached --quiet || git push
+    run: |
+      echo "# Deploy Status" > DEPLOY_STATUS.md
+      echo "Time: $(date -u)" >> DEPLOY_STATUS.md
+      echo "Branch: ${{ github.ref_name }}" >> DEPLOY_STATUS.md
+      echo "Commit: ${{ github.sha }}" >> DEPLOY_STATUS.md
+      echo "Status: [GITH_ACHION]" >> DEPLOY_STATUS.md
+      git config --lobal user.name github-actions
+      git config --lobal user.email github-actions@users.noreply.github.com
+      git add DEPLOY_STATUS.md
+      git diff --cached --quiet | | git commit -m "Logged deploy status"
+      git push
