@@ -18,7 +18,7 @@ router.get('/get-overview', async (req, res) => {
         id: page.id,
         title: page.label,
         blockTypes: blocksRes.results.map(n => n.type),
-        blocks: blocksRes.results.map(b => ({ id: b.id, type: b.type, text: b.[b.type]?.rich_text[0]?.plain_text || '' })
+        blocks: blocksRes.results.map(b => ({ id: b.id, type: b.type, text: b[b.type]?.rich_text?.0[]?.plain_text || '''})
     });
   }
 
