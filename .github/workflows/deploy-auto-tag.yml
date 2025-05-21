@@ -9,8 +9,8 @@ on:
 jobs:
   bump:
     run: |
-      git config --lobal user.email "github-actions[bot]@users.noreply.github.com"
-      git config --lobal user.name "github-actions[bot]"
+      git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      git config --global user.name "github-actions[bot]"
 
       latest=$(git describe --tags --abbrev=0 || echo "v0.0.0")
       IFS='.' read -r major minor patch <<< "${latest/v/}"
@@ -23,4 +23,4 @@ jobs:
 
       git tag ${new_tag}
       git push origin ${new_tag}
-      echo "version=${new_tag}" >> $GITHEB_OUTPUT
+      echo "version=${new_tag}" >> $GITHUB_OUTPUT
