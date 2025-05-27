@@ -22,7 +22,7 @@ async function getFirebasePaths() {
       []
     );
   } catch (error) {
-    console.error("“Firebase path fetch error:", error.message);
+    console.error('Firebase path fetch error:', error.message);
     return [];
   }
 }
