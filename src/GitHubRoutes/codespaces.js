@@ -11,13 +11,15 @@ const router = express.Router();
 router.get('/codespaces', async (req, res) => {
   try {
     const { data } = await octokit.codespaces.listForAuthenticatedUser();
-    res.json( data.codespaces.map(cs => ({
-      id: cs.id,
-      name: cs.name,
-      state: cs.state,
-      created_at: cs.created_at,
-      repo: cs.repository.full_name
-    }) )
+    res.json(
+      data.codespaces.map(cs => ({
+        id: cs.id,
+        name: cs.name,
+        state: cs.state,
+        created_at: cs.created_at,
+        repo: cs.repository.full_name
+      }))
+    );
   } catch (error) {
     console.error('listCodespaces error:', typeof error === 'object' ? error.message : error);
     res.status(500).json( { error: 'Failed to list codespaces' });

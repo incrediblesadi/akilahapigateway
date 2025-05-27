@@ -8,7 +8,7 @@ const octokit = new Octokit({
 const router = express.Router();
 
 // List issues for a repository
-router.get('/issues/:owner:repo', async (req, res) => {
+router.get('/issues/:owner/:repo', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const { data } = await octokit.issues.listForRepo({
@@ -31,7 +31,7 @@ router.get('/issues/:owner:repo', async (req, res) => {
 });
 
 // Get details for a specific issue
-router.get('/issues/:owner:repo/:issue_number', async (req, res) => {
+router.get('/issues/:owner/:repo/:issue_number', async (req, res) => {
   try {
     const { owner, repo, issue_number } = req.params;
     const { data } = await octokit.issues.get({
@@ -47,7 +47,7 @@ router.get('/issues/:owner:repo/:issue_number', async (req, res) => {
 });
 
 // Create a new issue
-router.post('/issues/:owner:repo/create', async (req, res) => {
+router.post('/issues/:owner/:repo/create', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const { title, body } = req.body;

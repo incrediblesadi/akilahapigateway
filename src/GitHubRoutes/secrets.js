@@ -11,8 +11,8 @@ const router = express.Router();
 // List secrets in a repo
 router.get('/secrets/:owner/:repo', async (req, res) => {
   try {
-    const { owner, repo } = req.params;
-    const { data } = await octokit.actions.listRepoSecrets({oner, repo});
+  const { owner, repo } = req.params;
+  const { data } = await octokit.actions.listRepoSecrets({ owner, repo });
     res.json(data.secrets);
   } catch (error) {
     console.error('listSecrets error:', error);
@@ -49,7 +49,7 @@ router.post('/secrets/:owner/:repo/:name', async (req, res) => {
 });
 
 // Delete a secret
-router.delete('/secrets/:owner:repo/:name', async (req, res) => {
+router.delete('/secrets/:owner/:repo/:name', async (req, res) => {
   try {
     const { owner, repo, name } = req.params;
     await octokit.actions.deleteRepoSecret({ owner, repo, secret_name: name });

@@ -17,7 +17,7 @@ router.get('/gists', async (req, res) => {
       public: gist.public,
       files: Object.keys(gist.files),
       created_at: gist.created_at
-    }));
+    })));
   } catch (error) {
     console.error('listGists error:', typeof error === 'object' ? error.message : error);
     res.status(500).json( { error: 'Failed to list gists' });
