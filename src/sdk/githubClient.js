@@ -1,4 +1,4 @@
-const { Octokit } = require("@octokit/rest");
+const { Octokit } = require('@octokit/rest');
 
 const octokit = new Octokit({
   auth: process.env.GITHUB_PAT || 'your-actual-token'
@@ -6,13 +6,12 @@ const octokit = new Octokit({
 
 async function getGitHubData() {
   try {
-    const owner = "incrediblesadi";
-    const repo = "akilahapigateway";
+    const owner = 'incrediblesadi';
+    const repo = 'akilahapigateway';
 
-    const [branchesRes, issuesRes] = await Promise.all
-    ([
+    const [branchesRes, issuesRes] = await Promise.all([
       octokit.repos.listBranches({ owner, repo }),
-      octokit.issues.listForRepo({ owner, repo: repo, state: "open" })
+      octokit.issues.listForRepo({ owner, repo, state: 'open' })
     ]);
 
     return {
@@ -21,17 +20,17 @@ async function getGitHubData() {
           name: repo,
           branches: branchesRes.data.map(b => b.name),
           issues: issuesRes.data.map(i => ({
-            id: `#'#{i.number}`,
+            id: `#${i.number}`,
             title: i.title,
             status: i.state
-          })
+          }))
         }
       ],
       selectedRepo: repo,
-      actions: ["listRepos", "getIssues", "createPR", "getBranches"]
+      actions: ['listRepos', 'getIssues', 'createPR', 'getBranches']
     };
-} catch (error) {
-    console.error("“GitHub data fetch error:", error.message);
+  } catch (error) {
+    console.error('GitHub data fetch error:', error.message);
     return { repos: [], selectedRepo: null, actions: [] };
   }
 }
