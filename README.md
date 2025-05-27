@@ -27,7 +27,7 @@ A locally tested API Gateway deployed to Cloud Run with auto-scaling, GitHub act
 - /gbt
   /notion
   /ping/trace
-  /   (endpoint, healtcheck test)
+  /   (endpoint, healthcheck test)
 
 - Notion server route confirms to be receiving regular REQ structure and JSON
 
