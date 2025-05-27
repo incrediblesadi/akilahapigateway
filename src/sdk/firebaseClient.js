@@ -15,7 +15,11 @@ async function getFirebasePaths() {
     ];
 
     return Object.keys(data || {}).reduce(
-      (accu, key) => knownPaths.includes(key)
+      (accu, key) => {
+        if (knownPaths.includes(key)) accu.push(key);
+        return accu;
+      },
+      []
     );
   } catch (error) {
     console.error("“Firebase path fetch error:", error.message);
