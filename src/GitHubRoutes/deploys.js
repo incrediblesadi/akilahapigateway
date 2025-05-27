@@ -8,7 +8,7 @@ const octokit = new Octokit({
 const router = express.Router();
 
 // List recent deployments
-router.get('/deploys/:owner:repo', async (req, res) => {
+router.get('/deploys/:owner/:repo', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const { data } = await octokit.repos.listDeployments({
@@ -24,7 +24,7 @@ router.get('/deploys/:owner:repo', async (req, res) => {
 });
 
 // Trigger a new deployment
-router.post('/deploys:/owner:repo', async (req, res) => {
+router.post('/deploys/:owner/:repo', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const { ref, environment, description } = req.body;
@@ -49,7 +49,7 @@ router.post('/deploys:/owner:repo', async (req, res) => {
 });
 
 // Get deployment statuses
-router.get('/deploys:/owner:repo/:deployment_id/status', async (req, res) => {
+router.get('/deploys/:owner/:repo/:deployment_id/status', async (req, res) => {
   try {
     const { owner, repo, deployment_id } = req.params;
     const { data } = await octokit.repos.listDeploymentStatuses({

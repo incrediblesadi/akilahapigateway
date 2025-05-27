@@ -24,7 +24,7 @@ router.get('/repos', async (req, res) => {
 });
 
 // Get metadata for a specific repo
-router.get('/repos/:owner:repo', async (req, res) => {
+router.get('/repos/:owner/:repo', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const { data } = await octokit.repos.get({ owner, repo });

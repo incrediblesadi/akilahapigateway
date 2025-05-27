@@ -8,7 +8,7 @@ const octokit = new Octokit({
 const router = express.Router();
 
 // Get repo settings
-router.get('/settings/:owner:repo', async (req, res) => {
+router.get('/settings/:owner/:repo', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const { data } = await octokit.repos.get({ owner, repo });
@@ -29,7 +29,7 @@ router.get('/settings/:owner:repo', async (req, res) => {
 });
 
 // Update repo settings
-router.patch('/settings/:owner:repo', async (req, res) => {
+router.patch('/settings/:owner/:repo', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const settings = req.body;

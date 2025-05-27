@@ -8,7 +8,7 @@ const octokit = new Octokit({
 const router = express.Router();
 
 // List webhooks
-router.get('/hooks/:owner:repo', async (req, res) => {
+router.get('/hooks/:owner/:repo', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const { data } = await octokit.repos.listWebhooks({
@@ -23,7 +23,7 @@ router.get('/hooks/:owner:repo', async (req, res) => {
 });
 
 // Create a webhook
-router.post('/hooks/:owner:repo/create', async (req, res) => {
+router.post('/hooks/:owner/:repo/create', async (req, res) => {
   try {
     const { owner, repo } = req.params;
     const { url, events } = req.body;
@@ -48,7 +48,7 @@ router.post('/hooks/:owner:repo/create', async (req, res) => {
 });
 
 // Delete a webhook
-router.delete('/hooks/:owner:repo/:hook_id', async (req, res) => {
+router.delete('/hooks/:owner/:repo/:hook_id', async (req, res) => {
   try {
     const { owner, repo, hook_id } = req.params;
     await octokit.repos.deleteWebhook({
@@ -56,7 +56,7 @@ router.delete('/hooks/:owner:repo/:hook_id', async (req, res) => {
      , repo
      , hook_id
     });
-    res.json( { status: 'deleted", id: hook_id });
+  res.json({ status: 'deleted', id: hook_id });
   } catch (error) {
     console.error('deleteHook error:', new Error(error));
     res.status(500).json( { error: 'Failed to delete webhook' });

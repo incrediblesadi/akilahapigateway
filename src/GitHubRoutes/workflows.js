@@ -8,10 +8,10 @@ const octokit = new Octokit({
 const router = express.Router();
 
 // List all workflows in a repo
-router.get('/workflows/:owner:repo', async (req, res) => {
+router.get('/workflows/:owner/:repo', async (req, res) => {
   try {
     const { owner, repo } = req.params;
-    const { data } = await octokit.actions.listRepoWorkflows({oner, repo});
+    const { data } = await octokit.actions.listRepoWorkflows({ owner, repo });
     res.json(data.workflows);
   } catch (error) {
     console.error('listWorkflows error:', error);
@@ -20,7 +20,7 @@ router.get('/workflows/:owner:repo', async (req, res) => {
 });
 
 // Trigger a workflow manually
-router.post('/workflows/:owner:repo/:workflow_id/run', async (req, res) => {
+router.post('/workflows/:owner/:repo/:workflow_id/run', async (req, res) => {
   try {
     const { owner, repo, workflow_id } = req.params;
     const { ref } = req.body;
@@ -40,7 +40,7 @@ router.post('/workflows/:owner:repo/:workflow_id/run', async (req, res) => {
 });
 
 // Cancel a workflow run
-router.post('/workflows/:owner:/repo/runs/:run_id/cancel', async (req, res) => {
+router.post('/workflows/:owner/:repo/runs/:run_id/cancel', async (req, res) => {
   try {
     const { owner, repo, run_id } = req.params;
 
