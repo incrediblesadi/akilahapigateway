@@ -9,28 +9,33 @@ router.post('/create-page', async (req, res) => {
 
     const response = await notion.pages.create({
       parent: {
-        type: 'page_id',
-        page_id: 'your-root-page-id'
+        type: "page_id",
+        page_id: "your-root-page-id"
       },
       properties: {
         title: {
+          type: "title",
           title: [
             {
-              type: 'text',
-              text: { content: title }
+              type: "text",
+              text: {
+                content: title
+              }
             }
           ]
         }
       },
       children: [
         {
-          object: 'block',
-          type: 'paragraph',
+          object: "block",
+          type: "paragraph",
           paragraph: {
             rich_text: [
               {
-                type: 'text',
-                text: { content }
+                type: "text",
+                text: { 
+                  content: content 
+                }
               }
             ]
           }
@@ -38,10 +43,10 @@ router.post('/create-page', async (req, res) => {
       ]
     });
 
-    res.status(200).json({ status: 'created', pageId: response.id });
+    res.status(200).json( { status: 'created', pageId: response.id });
   } catch (error) {
-    console.error('Create page error:', error);
-    res.status(500).json({ error: 'Failed to create page' });
+    console.error('Create page error:', new Error(error));
+    res.status(500).json( { error: 'Failed to create page' });
   }
 });
 
