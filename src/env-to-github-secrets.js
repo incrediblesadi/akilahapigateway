@@ -14,7 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Octokit } = require('@octokit/rest');
-const sodium = require('tweetsodium');
+const sodium = require('libsodium-wrappers');
 const readline = require('readline');
 
 // Check if required arguments are provided
@@ -110,7 +110,8 @@ async function createOrUpdateSecret(owner, repo, secretName, secretValue) {
     const keyBytes = Buffer.from(key, 'base64');
     
     // Encrypt the secret value using libsodium
-    const encryptedBytes = sodium.seal(messageBytes, keyBytes);
+    await sodium.ready;
+    const encryptedBytes = sodium.crypto_box_seal(messageBytes, keyBytes);
     const encrypted_value = Buffer.from(encryptedBytes).toString('base64');
     
     // Create or update the secret

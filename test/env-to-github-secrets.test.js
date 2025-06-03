@@ -20,14 +20,15 @@ jest.mock('@octokit/rest', () => {
   };
 });
 
-jest.mock('tweetsodium', () => ({
-  seal: jest.fn().mockReturnValue(new Uint8Array([1, 2, 3, 4]))
+jest.mock('libsodium-wrappers', () => ({
+  ready: Promise.resolve(),
+  crypto_box_seal: jest.fn().mockReturnValue(new Uint8Array([1, 2, 3, 4]))
 }));
 
 // Import the module with mocked dependencies
 const { parseEnvFile, createOrUpdateSecret, main } = require('../src/env-to-github-secrets');
 const { Octokit } = require('@octokit/rest');
-const sodium = require('tweetsodium');
+const sodium = require('libsodium-wrappers');
 
 describe('env-to-github-secrets', () => {
   const testEnvPath = path.join(__dirname, 'test.env');

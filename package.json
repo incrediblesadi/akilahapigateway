@@ -15,7 +15,7 @@
     "firebase-admin": "^11.0.0",
     "luxon": "^3.0.0",
     "@octokit/rest": "^19.0.13",
-    "tweetsodium": "^1.0.3"
+    "@octokit/auth-app": "^4.0.13", "libsodium-wrappers": "^0.7.13"
   },
   "devDependencies": {
     "jest": "^29.7.0"
