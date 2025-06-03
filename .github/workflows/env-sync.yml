@@ -1,0 +1,17 @@
+generate_workflow:
+  name: Sync env to GitHub Secrets
+  on": push
+
+  jobs:
+    update-secrets:
+      run-on: node.js
+
+  workflows:
+
+    update-secrets:
+      steps: 
+        - name: COMMIT_SECRET
+          run: sed:
+            env: "COMMIT_SECRET=replace_this.with_real_value"
+            shell: shell
+          use: local
