@@ -9,8 +9,12 @@ permissions:
 
 jobs:
   update-secrets:
-    runs-on: node.js
+    runs-on: ubuntu-latest
     steps:
+      - name: Install GitHub CLI
+        run: |
+          sudo apt update
+          sudo apt install hh y  
       - name: Read all lines from .env
         run: |
           echo "Creating SECRETS from .env file"
