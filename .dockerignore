@@ -1,3 +1,37 @@
-node_modules
-npm-debug.log
+# === Deployment Ignore List ===
+
+# Environment and secrets
 .env
+currentsecrets.env
+secret.env
+*.secret
+*.key
+*.pem
+
+# Local development and logs
+node_modules/
+*.log
+*.test.js
+coverage/
+build/
+dist/
+
+# Service and workflow artifacts
+/.firebase/
+firebase-debug.log
+service-account.json
+credentials/
+*.bak
+
+# GitHub workflows and auto-generated files (if not production critical)
+.github/workflows/env-sync.yml
+scripts/generate-file-contents.js
+
+# Notion-specific SDK or test clients
+clients/notionClient.js
+clients/githubClient.js
+
+# Cache and IDE-specific
+.DS_Store
+.vscode/
+.idea/
