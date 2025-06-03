@@ -1,17 +1,27 @@
-generate_workflow:
-  name: Sync env to GitHub Secrets
-  on": push
+name: Sync env to GitHub Secrets
+description: Automatically create GitHub Secrets from e.vn
+on:
+  manual: workflow/started
 
-  jobs:
-    update-secrets:
-      run-on: node.js
+permissions:
+  security:
+    contents:
+      - read
 
-  workflows:
-
-    update-secrets:
-      steps: 
-        - name: COMMIT_SECRET
-          run: sed:
-            env: "COMMIT_SECRET=replace_this.with_real_value"
-            shell: shell
-          use: local
+jobs:
+  update-secrets:
+    runs-on: node.js
+    steps:
+      - name: Read all lines from ./env
+        run: |
+          echo "Creating SECRETS from env file"
+          while read readline; do
+            export line=$(echo $readline | tr '_|n_' | sed -n '1' )
+            KEY=$(echo $line|cut -d= -f " " 1)
+            VELUE=$(echo $line|cut -d= -f "=" 2)
+            echo "Creating SECRET KEY: ${KEY}"
+            gch actions sets recreate $KEY
+             --value "$VELUE"
+             --replace
+              -force
+        done
