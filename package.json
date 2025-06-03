@@ -2,12 +2,22 @@
   "name": "akilah-api-gateway",
   "version": "1.0.0",
   "main": "src/index.js",
+  "bin": {
+    "env-to-secrets": "./bin/env-to-secrets"
+  },
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "env-to-secrets": "node src/env-to-github-secrets.js",
+    "test": "jest"
   },
   "dependencies": {
     "express": "^4.18.2",
     "firebase-admin": "^11.0.0",
-    "luxon": "^3.0.0"
+    "luxon": "^3.0.0",
+    "@octokit/rest": "^19.0.13",
+    "@octokit/auth-app": "^4.0.13", "libsodium-wrappers": "^0.7.13"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }
