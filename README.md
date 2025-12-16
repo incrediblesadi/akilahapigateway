@@ -1,5 +1,19 @@
 # akilahapigateway
 
+> **📚 Comprehensive Project Analysis Available:** See [START-HERE.md](./START-HERE.md) for complete documentation including market analysis, technical architecture, and investor briefing.
+
+A unified API Gateway for GitHub, Notion, and Firebase deployed to Google Cloud Run with auto-scaling.
+
+## 🚀 Quick Links
+
+- **[START HERE](./START-HERE.md)** - Navigation guide and decision framework
+- **[Executive Summary](./EXECUTIVE-SUMMARY.md)** - 15-minute overview for investors
+- **[Complete Analysis](./PROJECT-ANALYSIS-INVESTOR-BRIEF.md)** - Full market and technical analysis
+- **[Architecture Docs](./ARCHITECTURE-AND-FEATURES.md)** - Technical deep-dive with diagrams
+- **[Action Plan](./DETAILED-ACTION-PLAN.md)** - Step-by-step redeployment guide
+
+## Project Overview
+
 A locally tested API Gateway deployed to Cloud Run with auto-scaling, GitHub activation, and public access.
 
 - Tested with curl, Google Cloud, and GNU[ADI]
