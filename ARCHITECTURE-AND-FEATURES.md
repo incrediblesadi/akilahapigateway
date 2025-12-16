@@ -1,7 +1,7 @@
 # Akila API Gateway - Architecture & Features Matrix
 
 **Version:** 1.0  
-**Last Updated:** December 16, 2025
+**Last Updated:** December 16, 2024
 
 ---
 
@@ -723,5 +723,5 @@ NODE_ENV: Environment (development/production)
 
 **Document Version:** 1.0  
 **Maintained by:** Project technical team  
-**Last Review:** December 16, 2025  
+**Last Review:** December 16, 2024  
 **Next Review:** Upon major architectural changes
