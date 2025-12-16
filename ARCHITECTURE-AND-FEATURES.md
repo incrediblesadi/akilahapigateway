@@ -1,7 +1,7 @@
 # Akila API Gateway - Architecture & Features Matrix
 
 **Version:** 1.0  
-**Last Updated:** December 16, 2024
+**Last Updated:** December 16, 2025
 
 ---
 
@@ -485,8 +485,8 @@
 │  │  • @notionhq/client SDK initialization                   │ │
 │  │  • Authentication: NOTION_TOKEN env variable             │ │
 │  │  • Exports: notion client instance                       │ │
-│  │  • ⚠️ SECURITY ISSUE: Token hardcoded in source          │ │
-│  │    (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) │ │
+│  │  • ⚠️ CRITICAL SECURITY ISSUE: Token was hardcoded       │ │
+│  │    Must be removed and rotated immediately               │ │
 │  └──────────────────────────────────────────────────────────┘ │
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────────┐ │
@@ -723,5 +723,5 @@ NODE_ENV: Environment (development/production)
 
 **Document Version:** 1.0  
 **Maintained by:** Project technical team  
-**Last Review:** December 16, 2024  
+**Last Review:** December 16, 2025  
 **Next Review:** Upon major architectural changes

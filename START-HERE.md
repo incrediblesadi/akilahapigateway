@@ -1,6 +1,6 @@
 # Project Review Summary - Start Here
 
-**Date:** December 16, 2024  
+**Date:** December 16, 2025  
 **Project:** Akila API Gateway  
 **Purpose:** Comprehensive project analysis for investment decision
 
@@ -225,15 +225,21 @@ This comprehensive review answers all your questions about the Akila API Gateway
 
 ## 🔐 Security Notice
 
-**CRITICAL:** The codebase currently has hardcoded secrets (Notion token in `src/sdk/notionClient.js`). 
+**⚠️ CRITICAL:** The codebase contains hardcoded secrets that pose an immediate security risk:
+
+1. **Notion API Token** in `src/sdk/notionClient.js` - Hardcoded token MUST be:
+   - Removed from source code immediately
+   - Rotated/revoked via Notion admin panel
+   - Replaced with environment variable reference only
 
 **Immediate Action Required:**
-1. ✅ Rotate all exposed credentials
-2. ✅ Remove hardcoded secrets from source
-3. ✅ Use environment variables only
-4. ✅ Implement API key authentication
+1. ✅ Revoke exposed Notion token immediately
+2. ✅ Generate new Notion integration token  
+3. ✅ Remove all hardcoded tokens from source code
+4. ✅ Use environment variables exclusively
+5. ✅ Implement API key authentication for the gateway itself
 
-**See:** [DETAILED-ACTION-PLAN.md - Phase 1](./DETAILED-ACTION-PLAN.md#phase-1-critical-security-hardening)
+**See:** [DETAILED-ACTION-PLAN.md - Phase 1, Step 1.1](./DETAILED-ACTION-PLAN.md#step-11-remove-hardcoded-secrets)
 
 ---
 
@@ -315,6 +321,6 @@ This review provides:
 
 ---
 
-**Last Updated:** December 16, 2024  
+**Last Updated:** December 16, 2025  
 **Version:** 1.0  
 **Status:** ✅ Complete and ready for review
