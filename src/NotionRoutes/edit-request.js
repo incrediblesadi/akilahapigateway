@@ -13,13 +13,13 @@ router.post('/edit-request', async (req, res) => {
       proposed,
       reason,
       status: 'pending',
-      createdAt: new Date().toISOString()
+      createdAt: timestamp
     });
 
     res.status(200).json({ status: 'logged', blockId });
   } catch (error) {
     console.error('Edit request logging error:', new Error(error));
-    res.status(500).json( { error: 'Failed to log edit request' });
+    res.status(500).json({ error: 'Failed to log edit request' });
   }
 });
 
