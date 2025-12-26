@@ -43,10 +43,10 @@ router.post('/create-page', async (req, res) => {
       ]
     });
 
-    res.status(200).json( { status: 'created', pageId: response.id });
+    res.status(200).json({ status: 'created', pageId: response.id });
   } catch (error) {
     console.error('Create page error:', new Error(error));
-    res.status(500).json( { error: 'Failed to create page' });
+    res.status(500).json({ error: 'Failed to create page' });
   }
 });
 
