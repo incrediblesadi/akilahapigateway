@@ -1,0 +1,896 @@
+# enhancements
+
+## 1
+
+{
+  "generated_at": "2025-05-25T14:09:47.764-04:00",
+  "sections": {
+    "Overview": "🧠 Akilah System: API Gateway— Initial Architecture\n\nOverview\n\nThis project provides a stateless HTTPS REST API endpoint designed for use with Custom GPTs on ChatGPT.com. It serves as the initial handshake between GPT and your server — capturing session input, logging it, and responding with live system context.",
+    "1. 📒 Accepts a raw JSON payload from GPT": "POST /sync\n\t•\tAccepts a raw JSON payload from GPT\n\t•\tNo user ID or authentication required\n\t•\tIntended for personal GPT agent syncs\n\n---",
+    "2. 📒 Logs the Incoming Payload to `stagingarea.json` and Calls `api_to_router_trigger.js`": "When a POST request is received at the API Gateway, the raw payload is not immediately processed. Instead, it is written to a centralized log file called `stagingarea.json`.",
+    "1. A new entry is added to the top of the file and includes:": "- **timestamp**: ISO 8601 format based on current time in Eastern Time\n- **day**: Day of the week (e.g., \"Monday\")\n- **date**: Human-readable format like `dd_MM_yy`\n- **time**: 12-hour time format like `hh_mm_a`\n- **month**: Month name or number from the timestamp\n- **week_of**: Computed range (Monday–Sunday) like `20_05_25–26_05_25`\n- **method**: HTTP method (usually \"POST\")\n- **payload**: The raw JSON sent by GPT\n- **status**: `\"awaiting\"` (default — to be processed by the router)\n\nThis entry acts as a structured intake log — it’s the only thing created at the time of request. No direct execution occurs yet.",
+    "2. Next, the API Gateway immediately calls `api_to_router_trigger.js`:": "- `routertrigger.js` is dispatched with the ISO timestamp as the UID.\n\n---",
+    "3. 📦 Simultaneously returns caching files (via `sadigptcache.js`)": "This gateway defers to `sadigptcache.js`, which dynamically selects a bundle of small JSON files to return to GPT. These files represent your current state.\n\nPossible outputs include:\n- `current__system__state.json`\n- `current__workingstate.json`\n- `active__session.json`\n- `gpt__state.json`\n- Optional: `bootcamp.json`, `hallucination_guardrails.json`\n\n> This enables Custom GPTs to sync their understanding of the system without storing any memory themselves.\n\n---",
+    "4. 🗂️ Logs to `gptsynclog.json`": "In addition to the structured staging entry, a summary entry is also added to `gptsynclog.json` for long-term tracking. This includes:\n- Timestamp\n- GPT interaction metadata\n- Event type (e.g., `\"sync\"`, `\"boot\"`, `\"recovery\"`)\n- File bundle returned\n- Any flags or special instructions\n\n---\n\n---",
+    "📁 Required Files (So Far)": "- `index.js`  \n  Main Express server. Accepts POST requests and logs them to `stagingarea.json`.\n\n- `api_to_router_trigger.js`  \n  Called by `index.js` after logging. Passes the request UID to `staging.js`.\n\n- `staging.js`  \n  Processes new entries in `stagingarea.json`. Determines intent and marks routing status.\n\n- `stagingarea.json`  \n  Append-only log of incoming GPT requests with status tracking.\n\n- `gpt_synclog.json`  \n  Lightweight sync log. Records GPT requests, timestamps, and return bundles.\n\n- `current__system__state.json`  \n  The only required cached file for now. Returned to GPT in every response.\n\n---",
+    "🔐 Service Account Permissions": "This gateway is fully managed through a default Google Cloud **Compute Service Account**:858627689875-compute@developer.gserviceaccount.com",
+    "📍 Project: `akilahstack`": "Project Number: `858627689875`  \nRegion: `us-central1`\n\n---",
+    "✅ Assigned IAM Roles": "The service account currently has **full access to all required GCP services**, including:",
+    "🧠 Core Compute": "- `roles/run.admin`\n- `roles/run.invoker`\n- `roles/cloudfunctions.admin`\n- `roles/cloudfunctions.developer`\n- `roles/cloudfunctions.invoker`",
+    "🛠️ Build & Deployment": "- `roles/cloudbuild.builds.editor`\n- `roles/cloudbuild.builds.viewer`\n- `roles/artifactregistry.reader`\n- `roles/clouddeploy.admin`\n- `roles/storage.admin`",
+    "🧠 Data, Logging, and Monitoring": "- `roles/logging.admin`\n- `roles/logging.viewer`\n- `roles/monitoring.viewer`\n- `roles/pubsub.publisher`\n- `roles/pubsub.subscriber`",
+    "🔐 Identity & Secrets": "- `roles/iam.serviceAccountUser`\n- `roles/iam.serviceAccountCreator`\n- `roles/secretmanager.secretAccessor`\n- `roles/runtimeconfig.admin`",
+    "⚙️ Async & Triggers": "- `roles/cloudtasks.enqueuer`\n- `roles/cloudscheduler.jobRunner`\n\n---",
+    "⚠️ Not Added": "- `roles/appengine.admin` — intentionally excluded, not currently used\n\n---\n\nThis service account can:\n- Deploy and run Cloud Run and Functions\n- Manage and access build pipelines\n- Read/write secrets and logs\n- Schedule jobs and queue tasks\n- Serve as the backbone for the Akilah API Gateway system\n\n---",
+    "🚀 Deployment Strategy": "The Akilah API Gateway is designed to run as a containerized REST service on **Google Cloud Run**, using **Cloud Build** for CI/CD. This ensures a secure, automated deployment pipeline without exposing credentials or using GitHub Actions.",
+    "✅ Deployment Flow": "1. Develop locally inside the `AkilahMainGateway/` folder\n2. Push code to the connected GitHub repository\n3. GitHub push triggers a **Cloud Build job** in GCP\n4. Cloud Build:\n   - Builds the container using the provided `Dockerfile`\n   - Deploys it to Cloud Run\n   - Uses the pre-authorized GCP **default compute service account**\n\n---",
+    "🔐 Authentication and Permissions": "- The system uses **Application Default Credentials (ADC)** — no service key file is required\n- Deployed Cloud Run services inherit IAM roles from:858627689875-compute@developer.gserviceaccount.com\n\n- This service account has full access to Cloud Run, Firebase, Cloud Functions, Logging, Secrets, and more (see “🔐 Service Account Permissions” above)\n\n---",
+    "⚙️ Runtime Files": "- `.env`: Used for SDK keys, service routes, and config toggles\n- `Dockerfile`: Defines the app runtime and build environment\n- `.dockerignore`: Ensures sensitive/local files are not added to the Docker build\n\n> No `cloudbuild.yaml` is required for now — Cloud Build auto-detects the Dockerfile.\n\n---",
+    "❌ Not Used": "- GitHub Actions — all deployment is managed natively by Google Cloud Build\n- `service-account-key.json` — replaced by built-in IAM and Workload Identity"
+  }
+}
+
+# 2
+{
+  "meta": {
+    "generated_at": "2025-05-25T18:46:29.646+00:00",
+    "root": "/app",
+    "note": "Generated with structure + content separation",
+    "foldersCount": 5,
+    "filesCount": 23,
+    "ignoreFiles": [
+      ".dockerignore"
+    ],
+    "packageNames": [
+      "@ampproject",
+      "@babel",
+      "@bcoe",
+      "@eslint",
+      "@eslint-community",
+      "@humanwhocodes",
+      "@istanbuljs",
+      "@jest",
+      "@jridgewell",
+      "@noble",
+      "@nodelib",
+      "@paralleldrive",
+      "@sinclair",
+      "@sinonjs",
+      "@types",
+      "@ungap",
+      "accepts",
+      "anymatch",
+      "array-flatten",
+      "balanced-match",
+      "binary-extensions",
+      "body-parser",
+      "brace-expansion",
+      "braces",
+      "bytes",
+      "call-bind-apply-helpers",
+      "call-bound",
+      "chokidar",
+      "concat-map",
+      "content-disposition",
+      "content-type",
+      "cookie",
+      "cookie-signature",
+      "debug",
+      "depd",
+      "destroy",
+      "dotenv",
+      "dunder-proto",
+      "ee-first",
+      "encodeurl",
+      "es-define-property",
+      "es-errors",
+      "es-object-atoms",
+      "escape-html",
+      "etag",
+      "express",
+      "fill-range",
+      "finalhandler",
+      "forwarded",
+      "fresh",
+      "function-bind",
+      "get-intrinsic",
+      "get-proto",
+      "gopd",
+      "has-symbols",
+      "hasown",
+      "http-errors",
+      "iconv-lite",
+      "ignore-by-default",
+      "inherits",
+      "ipaddr.js",
+      "is-binary-path",
+      "is-extglob",
+      "is-glob",
+      "is-number",
+      "luxon",
+      "math-intrinsics",
+      "media-typer",
+      "merge-descriptors",
+      "methods",
+      "mime-db",
+      "mime-types",
+      "minimatch",
+      "ms",
+      "negotiator",
+      "nodemon",
+      "normalize-path",
+      "object-inspect",
+      "on-finished",
+      "parseurl",
+      "path-to-regexp",
+      "picomatch",
+      "proxy-addr",
+      "pstree.remy",
+      "range-parser",
+      "raw-body",
+      "readdirp",
+      "safe-buffer",
+      "safer-buffer",
+      "semver",
+      "send",
+      "serve-static",
+      "setprototypeof",
+      "side-channel",
+      "side-channel-list",
+      "side-channel-map",
+      "side-channel-weakmap",
+      "simple-update-notifier",
+      "statuses",
+      "to-regex-range",
+      "toidentifier",
+      "touch",
+      "type-is",
+      "undefsafe",
+      "unpipe",
+      "utils-merge",
+      "vary"
+    ]
+  },
+  "structure": {
+    "type": "folder",
+    "name": "app",
+    "children": [
+      {
+        "type": "folder",
+        "name": ".vscode",
+        "children": [
+          {
+            "type": "file",
+            "name": "extensions.json"
+          }
+        ]
+      },
+      {
+        "type": "folder",
+        "name": "dashboard",
+        "children": [
+          {
+            "type": "file",
+            "name": "dashboard-server.js"
+          },
+          {
+            "type": "file",
+            "name": "index.html"
+          },
+          {
+            "type": "file",
+            "name": "script.js"
+          },
+          {
+            "type": "file",
+            "name": "style.css"
+          }
+        ]
+      },
+      {
+        "type": "folder",
+        "name": "data",
+        "children": [
+          {
+            "type": "file",
+            "name": "active__session.json"
+          },
+          {
+            "type": "file",
+            "name": "current__system__state.json"
+          },
+          {
+            "type": "file",
+            "name": "current__workingstate.json"
+          },
+          {
+            "type": "file",
+            "name": "gpt__state.json"
+          },
+          {
+            "type": "file",
+            "name": "gpt_synclog.json"
+          },
+          {
+            "type": "file",
+            "name": "index.js"
+          },
+          {
+            "type": "file",
+            "name": "notifications.json"
+          },
+          {
+            "type": "file",
+            "name": "read__me.json"
+          },
+          {
+            "type": "file",
+            "name": "stagingarea.json"
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "docker-compose.yml"
+      },
+      {
+        "type": "file",
+        "name": "generate-docs.js"
+      },
+      {
+        "type": "file",
+        "name": "package.json"
+      },
+      {
+        "type": "file",
+        "name": "read-me.js"
+      },
+      {
+        "type": "file",
+        "name": "readme.md"
+      },
+      {
+        "type": "folder",
+        "name": "src",
+        "children": [
+          {
+            "type": "file",
+            "name": "api_to_router_trigger.js"
+          },
+          {
+            "type": "file",
+            "name": "index.js"
+          },
+          {
+            "type": "file",
+            "name": "router.js"
+          },
+          {
+            "type": "file",
+            "name": "sadigptcache.js"
+          }
+        ]
+      }
+    ]
+  },
+  "files": [
+    {
+      "type": "file",
+      "name": "extensions.json",
+      "relativePath": ".vscode/extensions.json",
+      "size": 104,
+      "truncated": false,
+      "content": "{\n    \"recommendations\": [\n        \"openai.chatgpt\",\n        \"amazonwebservices.amazon-q-vscode\"\n    ]\n}"
+    },
+    {
+      "type": "file",
+      "name": "dashboard-server.js",
+      "relativePath": "dashboard/dashboard-server.js",
+      "size": 1359,
+      "truncated": false,
+      "content": "const express = require('express');\nconst path = require('path');\nconst fs = require('fs');\n\nconst app = express();\nconst PORT = process.env.DASHBOARD_PORT || 3001;\n\n// Serve static dashboard files (HTML, CSS, JS)\napp.use(express.static(path.join(__dirname)));\n\n// Dynamically load fresh JSON data on every request\napp.get('/data/all', (req, res) => {\n  try {\n    delete require.cache[require.resolve('../data/index.js')];\n    const data = require('../data/index.js');\n    res.json(data);\n  } catch (err) {\n    res.status(500).json({ error: 'Failed to load data.' });\n  }\n});\n\n// Regenerate read__me.json\napp.get('/refresh/readme', (req, res) => {\n  try {\n    delete require.cache[require.resolve('../read-me.js')];\n    require('../read-me.js');\n    res.json({ status: 'success', message: 'README refreshed' });\n  } catch (err) {\n    res.status(500).json({ status: 'error', message: err.message });\n  }\n});\n\n// Regenerate repo__map.json\napp.get('/refresh/repomap', (req, res) => {\n  try {\n    delete require.cache[require.resolve('../generate-docs.js')];\n    require('../generate-docs.js');\n    res.json({ status: 'success', message: 'Repo Map refreshed' });\n  } catch (err) {\n    res.status(500).json({ status: 'error', message: err.message });\n  }\n});\n\napp.listen(PORT, () => {\n  console.log(`📊 Dashboard server running at http://localhost:${PORT}`);\n});"
+    },
+    {
+      "type": "file",
+      "name": "index.html",
+      "relativePath": "dashboard/index.html",
+      "size": 717,
+      "truncated": false,
+      "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>Akilah Gateway Dashboard</title>\n  <link rel=\"stylesheet\" href=\"style.css\" />\n</head>\n<body>\n  <div class=\"layout\">\n    <aside class=\"sidebar\">\n      <h1>📊 Akilah Gateway Dashboard</h1>\n      <ul id=\"fileList\"></ul>\n    </aside>\n\n    <main class=\"content\">\n      <div class=\"top-bar\">\n        <input type=\"text\" id=\"searchInput\" placeholder=\"Search files...\" />\n        <button id=\"refreshButton\">🔄 Refresh</button>\n      </div>\n\n      <div class=\"scroll-box\">\n        <pre id=\"jsonOutput\">Select a file from the sidebar to view its contents.</pre>\n      </div>\n    </main>\n  </div>\n\n  <script src=\"script.js\"></script>\n</body>\n</html>"
+    },
+    {
+      "type": "file",
+      "name": "script.js",
+      "relativePath": "dashboard/script.js",
+      "size": 2513,
+      "truncated": false,
+      "content": "// dashboard/script.js\n\ndocument.addEventListener(\"DOMContentLoaded\", () => {\n  const fileList = document.getElementById(\"fileList\");\n  const jsonOutput = document.getElementById(\"jsonOutput\");\n  const searchInput = document.getElementById(\"searchInput\");\n  const refreshButton = document.getElementById(\"refreshButton\");\n\n  // Load and render data from /data/all\n  const loadData = () => {\n    fetch(\"/data/all\")\n      .then(res => res.json())\n      .then(data => {\n        const keys = Object.keys(data);\n\n        const renderList = (filter = \"\") => {\n          fileList.innerHTML = \"\";\n          keys.forEach(key => {\n            if (key.toLowerCase().includes(filter.toLowerCase())) {\n              const li = document.createElement(\"li\");\n              li.textContent = key.replace(/__/g, \" \");\n              li.dataset.key = key;\n              fileList.appendChild(li);\n            }\n          });\n        };\n\n        renderList();\n\n        searchInput.addEventListener(\"input\", (e) => {\n          renderList(e.target.value.trim());\n        });\n\n        fileList.addEventListener(\"click\", (e) => {\n          if (e.target && e.target.dataset.key) {\n            const selectedKey = e.target.dataset.key;\n            const selectedData = data[selectedKey];\n\n            jsonOutput.innerHTML = \"\"; // clear previous\n\n            const pre = document.createElement(\"pre\");\n            pre.textContent = JSON.stringify(selectedData, null, 2);\n            jsonOutput.appendChild(pre);\n\n            if ([\"read__me\", \"repo__map\"].includes(selectedKey)) {\n              const button = document.createElement(\"button\");\n              button.textContent = \"🔄 Regenerate\";\n              button.onclick = () => {\n                const route = selectedKey === \"read__me\" ? \"readme\" : \"repomap\";\n                fetch(`/refresh/${route}`)\n                  .then(() => {\n                    alert(`${selectedKey} regenerated!`);\n                    location.reload();\n                  })\n                  .catch(err => {\n                    alert(\"Error regenerating.\");\n                    console.error(err);\n                  });\n              };\n              jsonOutput.appendChild(button);\n            }\n          }\n        });\n\n        refreshButton.addEventListener(\"click\", () => {\n          location.reload();\n        });\n      })\n      .catch(err => {\n        console.error(\"❌ Failed to load dashboard data:\", err);\n        jsonOutput.textContent = \"Error loading data.\";\n      });\n  };\n\n  loadData();\n});"
+    },
+    {
+      "type": "file",
+      "name": "style.css",
+      "relativePath": "dashboard/style.css",
+      "size": 1301,
+      "truncated": false,
+      "content": "/* Layout container */\n.layout {\n  display: flex;\n  height: 100vh;\n  overflow: hidden;\n}\n\n/* Sidebar styles */\n.sidebar {\n  width: 250px;\n  background-color: #111;\n  color: white;\n  padding: 20px;\n  overflow-y: auto;\n  flex-shrink: 0;\n}\n\n.sidebar h1 {\n  font-size: 1.2rem;\n  margin-bottom: 1rem;\n}\n\n.sidebar ul {\n  list-style: none;\n  padding: 0;\n}\n\n.sidebar li {\n  padding: 8px 12px;\n  cursor: pointer;\n  text-transform: capitalize;\n}\n\n.sidebar li:hover {\n  background-color: #333;\n}\n\n/* Content area */\n.content {\n  flex-grow: 1;\n  padding: 20px;\n  overflow-y: auto;\n  position: relative;\n  background-color: #f5f5f5;\n}\n\n/* Top bar with search and refresh */\n.top-bar {\n  display: flex;\n  justify-content: flex-end;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n}\n\ninput#searchInput {\n  padding: 6px;\n  font-size: 14px;\n  width: 200px;\n}\n\nbutton#refreshButton {\n  padding: 6px 10px;\n  font-size: 14px;\n  cursor: pointer;\n}\n\n/* JSON display */\n.scroll-box {\n  background-color: #fff;\n  padding: 16px;\n  border-radius: 6px;\n  max-height: calc(100vh - 120px);\n  overflow-y: auto;\n  overflow-x: auto;\n  box-shadow: 0 0 5px rgba(0,0,0,0.1);\n  white-space: pre-wrap;\n  word-break: break-word;\n}\n\npre#jsonOutput {\n  margin: 0;\n  font-family: monospace;\n  font-size: 14px;\n  line-height: 1.5;\n}"
+    },
+    {
+      "type": "file",
+      "name": "active__session.json",
+      "relativePath": "data/active__session.json",
+      "size": 256,
+      "truncated": false,
+      "content": "{\n  \"session_id\": \"session_2025_05_25_10_19\",\n  \"user\": \"IncredibleSadi\",\n  \"mode\": \"local_dev\",\n  \"interface\": \"Visual Studio Code + Terminal\",\n  \"server_state\": \"online\",\n  \"dashboard_state\": \"accessible\",\n  \"last_sync\": \"2025-05-25T10:19:38.942-04:00\"\n}"
+    },
+    {
+      "type": "file",
+      "name": "current__system__state.json",
+      "relativePath": "data/current__system__state.json",
+      "size": 3788,
+      "truncated": false,
+      "content": "{\n  \"description\": \"🧠 Akilah System — Current Local Build State\",\n  \"environment\": \"local_dev\",\n  \"project_root\": \"AkilahMainGateway\",\n  \"status\": \"active\",\n  \"architecture\": {\n    \"api_gateway\": {\n      \"location\": \"src/index.js\",\n      \"role\": \"Acts as the primary RESTful API endpoint for incoming GPT POST requests\",\n      \"port\": 8080,\n      \"status\": \"online\",\n      \"behavior\": {\n        \"request_type\": \"POST /sync\",\n        \"logging\": \"Writes full JSON payload to data/stagingarea.json\",\n        \"uid_generation\": \"Timestamp in ISO format with Eastern Time adjustment\",\n        \"next_step\": \"Triggers api_to_router_trigger.js with UID\",\n        \"confirmation\": \"Responds back to GPT with status = awaiting\"\n      }\n    },\n    \"router_trigger\": {\n      \"location\": \"src/api_to_router_trigger.js\",\n      \"role\": \"Takes UID, appends status update to staging area, and dispatches router.js\",\n      \"status\": \"live\",\n      \"current_behavior\": \"Acknowledges receipt only (router dispatching logic stubbed)\"\n    },\n    \"router\": {\n      \"location\": \"src/router.js\",\n      \"role\": \"Reads payload by UID from stagingarea.json and determines routing action\",\n      \"status\": \"awaiting_extended_logic\"\n    }\n  },\n  \"dashboard\": {\n    \"location\": \"dashboard/\",\n    \"entry\": \"dashboard-server.js\",\n    \"port\": 8081,\n    \"status\": \"accessible\",\n    \"frontend\": {\n      \"HTML\": \"index.html (tailwind-style layout)\",\n      \"JS\": \"script.js auto-fetches /data/all\",\n      \"CSS\": \"style.css defines layout & sidebar\",\n      \"live_data\": \"dashboard displays all JSON files in /data via index.js dynamic loader\"\n    },\n    \"backend\": {\n      \"server\": \"Express server serves /data/all with allData object from data/index.js\",\n      \"refresh_rate\": \"Auto-refresh every 5s for overview panel\",\n      \"connection_status\": \"Monitored with dynamic retry + visual indicator\"\n    }\n  },\n  \"data_pipeline\": {\n    \"files_written\": [\n      \"stagingarea.json\",\n      \"active__session.json\",\n      \"current__system__state.json\",\n      \"current__workingstate.json\",\n      \"gpt__state.json\",\n      \"gpt_synclog.json\"\n    ],\n    \"file_summary\": {\n      \"stagingarea.json\": \"Raw GPT requests appended with timestamp and status\",\n      \"active__session.json\": \"Tracks current session info: ID, user, mode, sync time\",\n      \"current__system__state.json\": \"Defines system entry points, logging modes, active routes\",\n      \"current__workingstate.json\": \"Tracks what module is active and what’s next\",\n      \"gpt__state.json\": \"Stores GPT state: active sessions, status, system context\",\n      \"gpt_synclog.json\": \"Placeholder for future logging of GPT agent sync events\"\n    },\n    \"repo_docs\": {\n      \"repo__map.json\": \"Generated from generate-docs.js, captures full repo file/folder tree with content\",\n      \"read__me.json\": \"Programmatic readme version for live viewing inside dashboard\"\n    }\n  },\n  \"deployment_mode\": {\n    \"mode\": \"local\",\n    \"tools\": {\n      \"docker\": \"Dockerfile for API and Dashboard, exposed on 8080 and 8081 respectively\",\n      \"docker_compose\": \"docker-compose.yml orchestrates build and dual-server startup\",\n      \"manual_trigger\": \"curl POST to localhost:8080/sync for testing\"\n    },\n    \"next_steps\": [\n      \"Integrate router.js logic to dispatch actions based on payload\",\n      \"Add GPT-specific trigger logic (gpt_synclog.json)\",\n      \"Begin GitHub repo connection for auto-deploy on push\",\n      \"Secure and clean up environment variables (cloud-run ready)\",\n      \"Migrate local build to cloud-hosted Cloud Run pipeline\"\n    ]\n  },\n  \"cloud_targets\": {\n    \"provider\": \"Google Cloud Run (planned)\",\n    \"project_id\": \"akilahstack\",\n    \"region\": \"us-central1\",\n    \"service_account\": \"858627689875-compute@developer.gserviceaccount.com\",\n    \"iam_ready\": true\n  }\n}"
+    },
+    {
+      "type": "file",
+      "name": "current__workingstate.json",
+      "relativePath": "data/current__workingstate.json",
+      "size": 2757,
+      "truncated": false,
+      "content": "{\n  \"build_phase\": \"local_dev_setup\",\n  \"status\": \"in_progress\",\n  \"last_updated\": \"2025-05-25T14:30:00-04:00\",\n  \"project\": \"AkilahMainGateway\",\n  \"entry_point\": \"src/index.js\",\n  \"dashboard_server\": \"dashboard/dashboard-server.js\",\n  \"active_servers\": [\n    {\n      \"name\": \"API Gateway\",\n      \"port\": 8080,\n      \"status\": \"live\",\n      \"description\": \"Accepts POST requests from Custom GPT, writes to stagingarea.json and triggers router flow.\"\n    },\n    {\n      \"name\": \"Dashboard Viewer\",\n      \"port\": 8081,\n      \"status\": \"live\",\n      \"description\": \"Serves current session logs and JSON file system from /data via static express app.\"\n    }\n  ],\n  \"core_files\": {\n    \"gateway_logic\": [\n      \"src/index.js\",\n      \"src/api_to_router_trigger.js\",\n      \"src/router.js\"\n    ],\n    \"dashboard_files\": [\n      \"dashboard/dashboard-server.js\",\n      \"dashboard/index.html\",\n      \"dashboard/script.js\",\n      \"dashboard/style.css\"\n    ],\n    \"data_files\": [\n      \"active__session.json\",\n      \"current__system__state.json\",\n      \"current__workingstate.json\",\n      \"gpt__state.json\",\n      \"gpt_synclog.json\",\n      \"stagingarea.json\",\n      \"read__me.json\",\n      \"repo__map.json\",\n      \"notifications.json\"\n    ],\n    \"generators\": [\n      \"generate-docs.js\",\n      \"read-me.js\"\n    ]\n  },\n  \"immediate_next_steps\": [\n    \"➤ Add refresh and filtering controls to dashboard interface\",\n    \"➤ Append file update timestamps into notifications.json\",\n    \"➤ Build notifications.js to update notifications.json programmatically\",\n    \"➤ Integrate generate-docs.js and read-me.js into triggerable utilities via a CLI or dashboard\",\n    \"➤ Move toward runtime automation of doc regeneration on change\"\n  ],\n  \"structure_expansion\": {\n    \"folders_to_create\": [\n      \"src/sdk\",\n      \"src/routes\"\n    ],\n    \"sdk_targets\": [\n      \"Google Cloud SDK (Logging, Tasks, IAM)\",\n      \"Firebase Admin SDK\",\n      \"Notion SDK\",\n      \"GitHub REST SDK\",\n      \"AWS SDK\",\n      \"Google Workspace SDK\"\n    ],\n    \"route_categories\": [\n      \"firebase_routes\",\n      \"notion_routes\",\n      \"github_routes\",\n      \"aws_routes\",\n      \"gmail_routes\",\n      \"google_routes\",\n      \"sheets_routes\",\n      \"microsoft_routes\",\n      \"azure_routes\"\n    ]\n  },\n  \"finalization_plan\": {\n    \"version_control\": {\n      \"goal\": \"Push to new GitHub repository\",\n      \"repo_naming\": \"akilah-api-gateway\",\n      \"readme_source\": \"data/read__me.json\"\n    },\n    \"deployment\": {\n      \"method\": \"CloudBuild.yaml\",\n      \"platform\": \"Google Cloud Run\",\n      \"region\": \"us-central1\",\n      \"environment_secrets\": \"Stored via CloudBuild environment variables (not GitHub Secrets)\",\n      \"build_trigger\": \"Push to main branch or manual from Cloud Console\"\n    }\n  }\n}"
+    },
+    {
+      "type": "file",
+      "name": "gpt__state.json",
+      "relativePath": "data/gpt__state.json",
+      "size": 96,
+      "truncated": false,
+      "content": "{\n  \"lastSync\": null,\n  \"systemContext\": {},\n  \"activeSessions\": [],\n  \"status\": \"initialized\"\n}"
+    },
+    {
+      "type": "file",
+      "name": "gpt_synclog.json",
+      "relativePath": "data/gpt_synclog.json",
+      "size": 2,
+      "truncated": false,
+      "content": "[]"
+    },
+    {
+      "type": "file",
+      "name": "index.js",
+      "relativePath": "data/index.js",
+      "size": 766,
+      "truncated": false,
+      "content": "// data/index.js\n\nconst fs = require('fs');\nconst path = require('path');\n\nconst dataDir = __dirname;\nconst allData = {};\n\nfs.readdirSync(dataDir).forEach(file => {\n  const fullPath = path.join(dataDir, file);\n\n  // Skip if it's a directory (like archive), hidden, not JSON, or this file itself\n  if (\n    file === 'index.js' ||\n    file === 'archive' ||\n    file.startsWith('.') ||\n    !file.endsWith('.json') ||\n    fs.lstatSync(fullPath).isDirectory()\n  ) {\n    return;\n  }\n\n  const key = file.replace('.json', ''); // Clean filename as key\n  try {\n    const content = fs.readFileSync(fullPath, 'utf8');\n    allData[key] = JSON.parse(content);\n  } catch (err) {\n    console.warn(`⚠️ Failed to load ${file}: ${err.message}`);\n  }\n});\n\nmodule.exports = allData;"
+    },
+    {
+      "type": "file",
+      "name": "notifications.json",
+      "relativePath": "data/notifications.json",
+      "size": 19,
+      "truncated": false,
+      "content": "{\n  \"updates\": []\n}"
+    },
+    {
+      "type": "file",
+      "name": "read__me.json",
+      "relativePath": "data/read__me.json",
+      "size": 6541,
+      "truncated": false,
+      "content": "{\n  \"generated_at\": \"2025-05-25T14:09:47.764-04:00\",\n  \"sections\": {\n    \"Overview\": \"🧠 Akilah System: API Gateway— Initial Architecture\\n\\nOverview\\n\\nThis project provides a stateless HTTPS REST API endpoint designed for use with Custom GPTs on ChatGPT.com. It serves as the initial handshake between GPT and your server — capturing session input, logging it, and responding with live system context.\",\n    \"1. 📒 Accepts a raw JSON payload from GPT\": \"POST /sync\\n\\t•\\tAccepts a raw JSON payload from GPT\\n\\t•\\tNo user ID or authentication required\\n\\t•\\tIntended for personal GPT agent syncs\\n\\n---\",\n    \"2. 📒 Logs the Incoming Payload to `stagingarea.json` and Calls `api_to_router_trigger.js`\": \"When a POST request is received at the API Gateway, the raw payload is not immediately processed. Instead, it is written to a centralized log file called `stagingarea.json`.\",\n    \"1. A new entry is added to the top of the file and includes:\": \"- **timestamp**: ISO 8601 format based on current time in Eastern Time\\n- **day**: Day of the week (e.g., \\\"Monday\\\")\\n- **date**: Human-readable format like `dd_MM_yy`\\n- **time**: 12-hour time format like `hh_mm_a`\\n- **month**: Month name or number from the timestamp\\n- **week_of**: Computed range (Monday–Sunday) like `20_05_25–26_05_25`\\n- **method**: HTTP method (usually \\\"POST\\\")\\n- **payload**: The raw JSON sent by GPT\\n- **status**: `\\\"awaiting\\\"` (default — to be processed by the router)\\n\\nThis entry acts as a structured intake log — it’s the only thing created at the time of request. No direct execution occurs yet.\",\n    \"2. Next, the API Gateway immediately calls `api_to_router_trigger.js`:\": \"- `routertrigger.js` is dispatched with the ISO timestamp as the UID.\\n\\n---\",\n    \"3. 📦 Simultaneously returns caching files (via `sadigptcache.js`)\": \"This gateway defers to `sadigptcache.js`, which dynamically selects a bundle of small JSON files to return to GPT. These files represent your current state.\\n\\nPossible outputs include:\\n- `current__system__state.json`\\n- `current__workingstate.json`\\n- `active__session.json`\\n- `gpt__state.json`\\n- Optional: `bootcamp.json`, `hallucination_guardrails.json`\\n\\n> This enables Custom GPTs to sync their understanding of the system without storing any memory themselves.\\n\\n---\",\n    \"4. 🗂️ Logs to `gptsynclog.json`\": \"In addition to the structured staging entry, a summary entry is also added to `gptsynclog.json` for long-term tracking. This includes:\\n- Timestamp\\n- GPT interaction metadata\\n- Event type (e.g., `\\\"sync\\\"`, `\\\"boot\\\"`, `\\\"recovery\\\"`)\\n- File bundle returned\\n- Any flags or special instructions\\n\\n---\\n\\n---\",\n    \"📁 Required Files (So Far)\": \"- `index.js`  \\n  Main Express server. Accepts POST requests and logs them to `stagingarea.json`.\\n\\n- `api_to_router_trigger.js`  \\n  Called by `index.js` after logging. Passes the request UID to `staging.js`.\\n\\n- `staging.js`  \\n  Processes new entries in `stagingarea.json`. Determines intent and marks routing status.\\n\\n- `stagingarea.json`  \\n  Append-only log of incoming GPT requests with status tracking.\\n\\n- `gpt_synclog.json`  \\n  Lightweight sync log. Records GPT requests, timestamps, and return bundles.\\n\\n- `current__system__state.json`  \\n  The only required cached file for now. Returned to GPT in every response.\\n\\n---\",\n    \"🔐 Service Account Permissions\": \"This gateway is fully managed through a default Google Cloud **Compute Service Account**:858627689875-compute@developer.gserviceaccount.com\",\n    \"📍 Project: `akilahstack`\": \"Project Number: `858627689875`  \\nRegion: `us-central1`\\n\\n---\",\n    \"✅ Assigned IAM Roles\": \"The service account currently has **full access to all required GCP services**, including:\",\n    \"🧠 Core Compute\": \"- `roles/run.admin`\\n- `roles/run.invoker`\\n- `roles/cloudfunctions.admin`\\n- `roles/cloudfunctions.developer`\\n- `roles/cloudfunctions.invoker`\",\n    \"🛠️ Build & Deployment\": \"- `roles/cloudbuild.builds.editor`\\n- `roles/cloudbuild.builds.viewer`\\n- `roles/artifactregistry.reader`\\n- `roles/clouddeploy.admin`\\n- `roles/storage.admin`\",\n    \"🧠 Data, Logging, and Monitoring\": \"- `roles/logging.admin`\\n- `roles/logging.viewer`\\n- `roles/monitoring.viewer`\\n- `roles/pubsub.publisher`\\n- `roles/pubsub.subscriber`\",\n    \"🔐 Identity & Secrets\": \"- `roles/iam.serviceAccountUser`\\n- `roles/iam.serviceAccountCreator`\\n- `roles/secretmanager.secretAccessor`\\n- `roles/runtimeconfig.admin`\",\n    \"⚙️ Async & Triggers\": \"- `roles/cloudtasks.enqueuer`\\n- `roles/cloudscheduler.jobRunner`\\n\\n---\",\n    \"⚠️ Not Added\": \"- `roles/appengine.admin` — intentionally excluded, not currently used\\n\\n---\\n\\nThis service account can:\\n- Deploy and run Cloud Run and Functions\\n- Manage and access build pipelines\\n- Read/write secrets and logs\\n- Schedule jobs and queue tasks\\n- Serve as the backbone for the Akilah API Gateway system\\n\\n---\",\n    \"🚀 Deployment Strategy\": \"The Akilah API Gateway is designed to run as a containerized REST service on **Google Cloud Run**, using **Cloud Build** for CI/CD. This ensures a secure, automated deployment pipeline without exposing credentials or using GitHub Actions.\",\n    \"✅ Deployment Flow\": \"1. Develop locally inside the `AkilahMainGateway/` folder\\n2. Push code to the connected GitHub repository\\n3. GitHub push triggers a **Cloud Build job** in GCP\\n4. Cloud Build:\\n   - Builds the container using the provided `Dockerfile`\\n   - Deploys it to Cloud Run\\n   - Uses the pre-authorized GCP **default compute service account**\\n\\n---\",\n    \"🔐 Authentication and Permissions\": \"- The system uses **Application Default Credentials (ADC)** — no service key file is required\\n- Deployed Cloud Run services inherit IAM roles from:858627689875-compute@developer.gserviceaccount.com\\n\\n- This service account has full access to Cloud Run, Firebase, Cloud Functions, Logging, Secrets, and more (see “🔐 Service Account Permissions” above)\\n\\n---\",\n    \"⚙️ Runtime Files\": \"- `.env`: Used for SDK keys, service routes, and config toggles\\n- `Dockerfile`: Defines the app runtime and build environment\\n- `.dockerignore`: Ensures sensitive/local files are not added to the Docker build\\n\\n> No `cloudbuild.yaml` is required for now — Cloud Build auto-detects the Dockerfile.\\n\\n---\",\n    \"❌ Not Used\": \"- GitHub Actions — all deployment is managed natively by Google Cloud Build\\n- `service-account-key.json` — replaced by built-in IAM and Workload Identity\"\n  }\n}"
+    },
+    {
+      "type": "file",
+      "name": "stagingarea.json",
+      "relativePath": "data/stagingarea.json",
+      "size": 1869,
+      "truncated": false,
+      "content": "[\n  {\n    \"timestamp\": \"2025-05-25T14:04:14.040-04:00\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"02_04_PM\",\n    \"month\": \"May\",\n    \"week_of\": \"19_05_25–25_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"message\": \"Hello from Custom GPT\",\n      \"type\": \"test\"\n    },\n    \"status\": \"awaiting\",\n    \"trigger_status\": \"triggered_router\",\n    \"triggered_at\": \"2025-05-25T18:04:14.054+00:00\",\n    \"router_status\": \"router_received\",\n    \"router_received_at\": \"2025-05-25T18:04:14.055+00:00\"\n  },\n  {\n    \"timestamp\": \"2025-05-25T13:14:51.446-04:00\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"01_14_PM\",\n    \"month\": \"May\",\n    \"week_of\": \"19_05_25–25_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"message\": \"Hello Akilah!\"\n    },\n    \"status\": \"awaiting\",\n    \"trigger_status\": \"triggered_router\",\n    \"triggered_at\": \"2025-05-25T17:14:51.489+00:00\",\n    \"router_status\": \"router_received\",\n    \"router_received_at\": \"2025-05-25T17:14:51.490+00:00\"\n  },\n  {\n    \"timestamp\": \"2025-05-25T11:23:19.001-04:00\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"11_23_AM\",\n    \"month\": \"May\",\n    \"week_of\": \"19_05_25–25_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"test\": \"hello\"\n    },\n    \"status\": \"awaiting\"\n  },\n  {\n    \"timestamp\": \"2025-05-25T10:19:38.942-04:00\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"10_19_AM\",\n    \"month\": \"May\",\n    \"week_of\": \"19_05_25–25_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"message\": \"Test payload from GPT on port 8080\"\n    },\n    \"status\": \"awaiting\"\n  },\n  {\n    \"timestamp\": \"2025-05-25T14:12:59.555Z\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"10_12_am\",\n    \"month\": \"May\",\n    \"week_of\": \"25_05_25-31_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"message\": \"hello GPT\"\n    },\n    \"status\": \"awaiting\"\n  }\n]"
+    },
+    {
+      "type": "file",
+      "name": "docker-compose.yml",
+      "relativePath": "docker-compose.yml",
+      "size": 432,
+      "truncated": false,
+      "content": "version: '3.9'\n\nservices:\n  api-gateway:\n    build:\n      context: .\n      dockerfile: Dockerfile\n    ports:\n      - \"8080:8080\"\n    environment:\n      - PORT=8080\n    volumes:\n      - .:/app\n    restart: unless-stopped\n\n  dashboard:\n    build:\n      context: .\n      dockerfile: Dockerfile.dashboard\n    ports:\n      - \"8081:8081\"\n    environment:\n      - DASHBOARD_PORT=8081\n    volumes:\n      - .:/app\n    restart: unless-stopped"
+    },
+    {
+      "type": "file",
+      "name": "generate-docs.js",
+      "relativePath": "generate-docs.js",
+      "size": 3174,
+      "truncated": false,
+      "content": "// generate-docs.js\n\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\n\nconst MAX_FILE_LENGTH = 50000;\nconst projectRoot = process.cwd();\nconst outputDir = path.join(projectRoot, 'data');\nconst archiveDir = path.join(outputDir, 'archive');\nconst currentMapPath = path.join(outputDir, 'repo__map.json');\nconst archiveMapPath = path.join(archiveDir, 'repo__map__archive.json');\n\nconst EXCLUDED_PATHS = ['.git', 'dist', 'build', 'archive', 'node_modules', 'package-lock.json', 'repo__map.json', 'repo__map__archive.json', 'projectdocs.md'];\nconst ALLOWED_EXTENSIONS = ['.js', '.json', '.md', '.html', '.css', '.env', '.txt', '.yml', '.sh'];\n\nlet filesMeta = [];\nlet folderCount = 0;\nlet fileCount = 0;\n\nfunction isExcluded(pathStr) {\n  return EXCLUDED_PATHS.some(ex => pathStr.includes(ex));\n}\n\nfunction getPackageNames(dir) {\n  try {\n    return fs.existsSync(dir) ? fs.readdirSync(dir).filter(p => !p.startsWith('.')) : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction getIgnoreFiles(basePath) {\n  return fs.readdirSync(basePath).filter(f => f.endsWith('.gitignore') || f.endsWith('.dockerignore'));\n}\n\nfunction buildStructureTree(dir, base) {\n  const node = {\n    type: 'folder',\n    name: path.basename(dir),\n    children: []\n  };\n  folderCount++;\n\n  for (const item of fs.readdirSync(dir)) {\n    const fullPath = path.join(dir, item);\n    const relativePath = path.relative(base, fullPath);\n\n    if (isExcluded(relativePath)) continue;\n\n    if (fs.statSync(fullPath).isDirectory()) {\n      node.children.push(buildStructureTree(fullPath, base));\n    } else {\n      const ext = path.extname(item);\n      if (item === 'package.json' || ALLOWED_EXTENSIONS.includes(ext)) {\n        const stats = fs.statSync(fullPath);\n        fileCount++;\n\n        node.children.push({ type: 'file', name: item });\n\n        let content = '[unreadable]';\n        let truncated = false;\n\n        try {\n          content = fs.readFileSync(fullPath, 'utf8');\n          if (content.length > MAX_FILE_LENGTH) {\n            content = content.slice(0, MAX_FILE_LENGTH) + '\\n...[truncated]';\n            truncated = true;\n          }\n        } catch {}\n\n        filesMeta.push({\n          type: 'file',\n          name: item,\n          relativePath: relativePath,\n          size: stats.size,\n          truncated,\n          content\n        });\n      }\n    }\n  }\n\n  return node;\n}\n\n// Prepare folders\nif (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });\nif (fs.existsSync(currentMapPath)) fs.renameSync(currentMapPath, archiveMapPath);\n\n// Build map\nconst structure = buildStructureTree(projectRoot, projectRoot);\nconst repoMap = {\n  meta: {\n    generated_at: DateTime.now().toISO(),\n    root: projectRoot,\n    note: 'Generated with structure + content separation',\n    foldersCount: folderCount,\n    filesCount: fileCount,\n    ignoreFiles: getIgnoreFiles(projectRoot),\n    packageNames: getPackageNames(path.join(projectRoot, 'node_modules'))\n  },\n  structure,\n  files: filesMeta\n};\n\n// Write new output\nfs.writeFileSync(currentMapPath, JSON.stringify(repoMap, null, 2));\nconsole.log(`✅ repo__map.json written to ${currentMapPath}`);"
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "relativePath": "package.json",
+      "size": 632,
+      "truncated": false,
+      "content": "{\n  \"name\": \"akilah-api-gateway\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Stateless API Gateway and Dashboard for GPT syncing and logging\",\n  \"main\": \"src/index.js\",\n  \"scripts\": {\n    \"start\": \"node src/index.js\",\n    \"dev\": \"nodemon src/index.js\",\n    \"dashboard\": \"node dashboard/dashboard-server.js\",\n    \"dev:dashboard\": \"nodemon dashboard/dashboard-server.js\",\n    \"test\": \"echo \\\"No tests yet\\\" && exit 0\"\n  },\n  \"dependencies\": {\n    \"dotenv\": \"^16.3.1\",\n    \"express\": \"^4.18.2\",\n    \"luxon\": \"^3.4.4\"\n  },\n  \"devDependencies\": {\n    \"nodemon\": \"^3.1.10\"\n  },\n  \"engines\": {\n    \"node\": \">=16.0.0\"\n  },\n  \"license\": \"MIT\"\n}"
+    },
+    {
+      "type": "file",
+      "name": "read-me.js",
+      "relativePath": "read-me.js",
+      "size": 1279,
+      "truncated": false,
+      "content": "// read-me.js\n\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\n\nconst readmePath = path.join(__dirname, 'readme.md');\nconst outputPath = path.join(__dirname, 'data', 'read__me.json');\n\nfunction parseReadmeSections(markdown) {\n  const lines = markdown.split('\\n');\n  const sections = {};\n  let currentSection = 'Overview';\n  sections[currentSection] = [];\n\n  for (const line of lines) {\n    if (line.trim().startsWith('###') || line.trim().startsWith('##')) {\n      currentSection = line.trim().replace(/^#+\\s*/, '');\n      sections[currentSection] = [];\n    } else {\n      sections[currentSection].push(line);\n    }\n  }\n\n  for (const key in sections) {\n    sections[key] = sections[key].join('\\n').trim();\n  }\n\n  return sections;\n}\n\nfunction generateReadmeJSON() {\n  try {\n    const markdown = fs.readFileSync(readmePath, 'utf8');\n    const parsed = parseReadmeSections(markdown);\n\n    const output = {\n      generated_at: DateTime.now().toISO(),\n      sections: parsed\n    };\n\n    fs.writeFileSync(outputPath, JSON.stringify(output, null, 2));\n    console.log('✅ readme.md parsed and saved to data/read__me.json');\n  } catch (err) {\n    console.error('❌ Failed to process readme.md:', err.message);\n  }\n}\n\ngenerateReadmeJSON();"
+    },
+    {
+      "type": "file",
+      "name": "readme.md",
+      "relativePath": "readme.md",
+      "size": 6231,
+      "truncated": false,
+      "content": "🧠 Akilah System: API Gateway— Initial Architecture\n\nOverview\n\nThis project provides a stateless HTTPS REST API endpoint designed for use with Custom GPTs on ChatGPT.com. It serves as the initial handshake between GPT and your server — capturing session input, logging it, and responding with live system context.\n\n### 1. 📒 Accepts a raw JSON payload from GPT\nPOST /sync\n\t•\tAccepts a raw JSON payload from GPT\n\t•\tNo user ID or authentication required\n\t•\tIntended for personal GPT agent syncs\n\n---\n\n\n### 2. 📒 Logs the Incoming Payload to `stagingarea.json` and Calls `api_to_router_trigger.js`\n\nWhen a POST request is received at the API Gateway, the raw payload is not immediately processed. Instead, it is written to a centralized log file called `stagingarea.json`.\n\n#### 1. A new entry is added to the top of the file and includes:\n- **timestamp**: ISO 8601 format based on current time in Eastern Time\n- **day**: Day of the week (e.g., \"Monday\")\n- **date**: Human-readable format like `dd_MM_yy`\n- **time**: 12-hour time format like `hh_mm_a`\n- **month**: Month name or number from the timestamp\n- **week_of**: Computed range (Monday–Sunday) like `20_05_25–26_05_25`\n- **method**: HTTP method (usually \"POST\")\n- **payload**: The raw JSON sent by GPT\n- **status**: `\"awaiting\"` (default — to be processed by the router)\n\nThis entry acts as a structured intake log — it’s the only thing created at the time of request. No direct execution occurs yet.\n\n#### 2. Next, the API Gateway immediately calls `api_to_router_trigger.js`:\n- `routertrigger.js` is dispatched with the ISO timestamp as the UID.\n\n---\n\n### 3. 📦 Simultaneously returns caching files (via `sadigptcache.js`)\n\nThis gateway defers to `sadigptcache.js`, which dynamically selects a bundle of small JSON files to return to GPT. These files represent your current state.\n\nPossible outputs include:\n- `current__system__state.json`\n- `current__workingstate.json`\n- `active__session.json`\n- `gpt__state.json`\n- Optional: `bootcamp.json`, `hallucination_guardrails.json`\n\n> This enables Custom GPTs to sync their understanding of the system without storing any memory themselves.\n\n---\n\n### 4. 🗂️ Logs to `gptsynclog.json`\n\nIn addition to the structured staging entry, a summary entry is also added to `gptsynclog.json` for long-term tracking. This includes:\n- Timestamp\n- GPT interaction metadata\n- Event type (e.g., `\"sync\"`, `\"boot\"`, `\"recovery\"`)\n- File bundle returned\n- Any flags or special instructions\n\n---\n\n---\n\n## 📁 Required Files (So Far)\n\n- `index.js`  \n  Main Express server. Accepts POST requests and logs them to `stagingarea.json`.\n\n- `api_to_router_trigger.js`  \n  Called by `index.js` after logging. Passes the request UID to `staging.js`.\n\n- `staging.js`  \n  Processes new entries in `stagingarea.json`. Determines intent and marks routing status.\n\n- `stagingarea.json`  \n  Append-only log of incoming GPT requests with status tracking.\n\n- `gpt_synclog.json`  \n  Lightweight sync log. Records GPT requests, timestamps, and return bundles.\n\n- `current__system__state.json`  \n  The only required cached file for now. Returned to GPT in every response.\n\n---\n\n## 🔐 Service Account Permissions\n\nThis gateway is fully managed through a default Google Cloud **Compute Service Account**:858627689875-compute@developer.gserviceaccount.com\n\n### 📍 Project: `akilahstack`  \nProject Number: `858627689875`  \nRegion: `us-central1`\n\n---\n\n### ✅ Assigned IAM Roles\n\nThe service account currently has **full access to all required GCP services**, including:\n\n#### 🧠 Core Compute\n- `roles/run.admin`\n- `roles/run.invoker`\n- `roles/cloudfunctions.admin`\n- `roles/cloudfunctions.developer`\n- `roles/cloudfunctions.invoker`\n\n#### 🛠️ Build & Deployment\n- `roles/cloudbuild.builds.editor`\n- `roles/cloudbuild.builds.viewer`\n- `roles/artifactregistry.reader`\n- `roles/clouddeploy.admin`\n- `roles/storage.admin`\n\n#### 🧠 Data, Logging, and Monitoring\n- `roles/logging.admin`\n- `roles/logging.viewer`\n- `roles/monitoring.viewer`\n- `roles/pubsub.publisher`\n- `roles/pubsub.subscriber`\n\n#### 🔐 Identity & Secrets\n- `roles/iam.serviceAccountUser`\n- `roles/iam.serviceAccountCreator`\n- `roles/secretmanager.secretAccessor`\n- `roles/runtimeconfig.admin`\n\n#### ⚙️ Async & Triggers\n- `roles/cloudtasks.enqueuer`\n- `roles/cloudscheduler.jobRunner`\n\n---\n\n### ⚠️ Not Added\n- `roles/appengine.admin` — intentionally excluded, not currently used\n\n---\n\nThis service account can:\n- Deploy and run Cloud Run and Functions\n- Manage and access build pipelines\n- Read/write secrets and logs\n- Schedule jobs and queue tasks\n- Serve as the backbone for the Akilah API Gateway system\n\n---\n\n## 🚀 Deployment Strategy\n\nThe Akilah API Gateway is designed to run as a containerized REST service on **Google Cloud Run**, using **Cloud Build** for CI/CD. This ensures a secure, automated deployment pipeline without exposing credentials or using GitHub Actions.\n\n### ✅ Deployment Flow\n\n1. Develop locally inside the `AkilahMainGateway/` folder\n2. Push code to the connected GitHub repository\n3. GitHub push triggers a **Cloud Build job** in GCP\n4. Cloud Build:\n   - Builds the container using the provided `Dockerfile`\n   - Deploys it to Cloud Run\n   - Uses the pre-authorized GCP **default compute service account**\n\n---\n\n### 🔐 Authentication and Permissions\n\n- The system uses **Application Default Credentials (ADC)** — no service key file is required\n- Deployed Cloud Run services inherit IAM roles from:858627689875-compute@developer.gserviceaccount.com\n\n- This service account has full access to Cloud Run, Firebase, Cloud Functions, Logging, Secrets, and more (see “🔐 Service Account Permissions” above)\n\n---\n\n### ⚙️ Runtime Files\n\n- `.env`: Used for SDK keys, service routes, and config toggles\n- `Dockerfile`: Defines the app runtime and build environment\n- `.dockerignore`: Ensures sensitive/local files are not added to the Docker build\n\n> No `cloudbuild.yaml` is required for now — Cloud Build auto-detects the Dockerfile.\n\n---\n\n### ❌ Not Used\n- GitHub Actions — all deployment is managed natively by Google Cloud Build\n- `service-account-key.json` — replaced by built-in IAM and Workload Identity"
+    },
+    {
+      "type": "file",
+      "name": "api_to_router_trigger.js",
+      "relativePath": "src/api_to_router_trigger.js",
+      "size": 945,
+      "truncated": false,
+      "content": "// src/api_to_router_trigger.js\n\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\nconst { triggerRouter } = require('./router');\n\nfunction triggerRouterFromAPI(uid) {\n  console.log(`🔁 Triggering router.js with UID: ${uid}`);\n\n  const stagingPath = path.join(__dirname, '../data/stagingarea.json');\n  if (!fs.existsSync(stagingPath)) return;\n\n  const stagingData = JSON.parse(fs.readFileSync(stagingPath, 'utf-8'));\n  const index = stagingData.findIndex(entry => entry.timestamp === uid);\n\n  if (index !== -1) {\n    const now = DateTime.now().toISO();\n    stagingData[index].trigger_status = 'triggered_router';\n    stagingData[index].triggered_at = now;\n    fs.writeFileSync(stagingPath, JSON.stringify(stagingData, null, 2));\n  } else {\n    console.warn(`⚠️ UID ${uid} not found in stagingarea.json`);\n  }\n\n  triggerRouter(uid);\n}\n\nmodule.exports = {\n  triggerRouter: triggerRouterFromAPI\n};"
+    },
+    {
+      "type": "file",
+      "name": "index.js",
+      "relativePath": "src/index.js",
+      "size": 1696,
+      "truncated": false,
+      "content": "// src/index.js\n\nconst express = require('express');\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\nrequire('dotenv').config();\n\nconst app = express();\nconst PORT = process.env.PORT || 8080;\n\napp.use(express.json());\n\n// POST /sync endpoint (logs and appends to stagingarea.json)\napp.post('/sync', (req, res) => {\n  try {\n    const payload = req.body;\n\n    const now = DateTime.now().setZone('America/New_York');\n    const isoTimestamp = now.toISO();\n    const entry = {\n      timestamp: isoTimestamp,\n      day: now.weekdayLong,\n      date: now.toFormat('dd_MM_yy'),\n      time: now.toFormat('hh_mm_a'),\n      month: now.toFormat('MMMM'),\n      week_of: now.startOf('week').toFormat('dd_MM_yy') + '–' + now.endOf('week').toFormat('dd_MM_yy'),\n      method: 'POST',\n      payload,\n      status: 'awaiting'\n    };\n\n    const stagingPath = path.join(__dirname, '../data/stagingarea.json');\n    const stagingData = fs.existsSync(stagingPath) ? JSON.parse(fs.readFileSync(stagingPath, 'utf-8')) : [];\n    stagingData.unshift(entry);\n    fs.writeFileSync(stagingPath, JSON.stringify(stagingData, null, 2));\n\n    // Trigger API to router trigger with the UID (timestamp)\n    const { triggerRouter } = require('./api_to_router_trigger');\n    triggerRouter(isoTimestamp);\n\n    res.status(200).json({\n      uid: isoTimestamp,\n      status: 'received',\n      message: 'Payload logged and processing triggered.'\n    });\n  } catch (err) {\n    console.error('Error in /sync:', err);\n    res.status(500).json({ error: 'Internal Server Error' });\n  }\n});\n\napp.listen(PORT, () => {\n  console.log(`✅ Akilah API Gateway running at http://localhost:${PORT}`);\n});"
+    },
+    {
+      "type": "file",
+      "name": "router.js",
+      "relativePath": "src/router.js",
+      "size": 843,
+      "truncated": false,
+      "content": "// src/router.js\n\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\n\nfunction triggerRouter(uid) {\n  const stagingPath = path.join(__dirname, '../data/stagingarea.json');\n  if (!fs.existsSync(stagingPath)) return;\n\n  const stagingData = JSON.parse(fs.readFileSync(stagingPath, 'utf-8'));\n  const index = stagingData.findIndex(entry => entry.timestamp === uid);\n\n  if (index !== -1) {\n    const now = DateTime.now().toISO();\n    stagingData[index].router_status = 'router_received';\n    stagingData[index].router_received_at = now;\n    fs.writeFileSync(stagingPath, JSON.stringify(stagingData, null, 2));\n    console.log(`✅ router.js acknowledged UID ${uid}`);\n  } else {\n    console.warn(`⚠️ UID ${uid} not found in stagingarea.json (router.js)`);\n  }\n}\n\nmodule.exports = {\n  triggerRouter\n};"
+    },
+    {
+      "type": "file",
+      "name": "sadigptcache.js",
+      "relativePath": "src/sadigptcache.js",
+      "size": 0,
+      "truncated": false,
+      "content": ""
+    }
+  ]
+}
+
+
+
+
+
+{
+  "meta": {
+    "generated_at": "2025-05-25T14:07:31.776-04:00",
+    "root": "/Applications/Incredible_Sadi/Desktop/AkilahMainGateway",
+    "note": "Generated with structure + content separation",
+    "foldersCount": 5,
+    "filesCount": 23,
+    "ignoreFiles": [
+      ".dockerignore"
+    ],
+    "packageNames": [
+      "@ampproject",
+      "@babel",
+      "@bcoe",
+      "@eslint",
+      "@eslint-community",
+      "@humanwhocodes",
+      "@istanbuljs",
+      "@jest",
+      "@jridgewell",
+      "@noble",
+      "@nodelib",
+      "@paralleldrive",
+      "@sinclair",
+      "@sinonjs",
+      "@types",
+      "@ungap",
+      "accepts",
+      "anymatch",
+      "array-flatten",
+      "balanced-match",
+      "binary-extensions",
+      "body-parser",
+      "brace-expansion",
+      "braces",
+      "bytes",
+      "call-bind-apply-helpers",
+      "call-bound",
+      "chokidar",
+      "concat-map",
+      "content-disposition",
+      "content-type",
+      "cookie",
+      "cookie-signature",
+      "debug",
+      "depd",
+      "destroy",
+      "dotenv",
+      "dunder-proto",
+      "ee-first",
+      "encodeurl",
+      "es-define-property",
+      "es-errors",
+      "es-object-atoms",
+      "escape-html",
+      "etag",
+      "express",
+      "fill-range",
+      "finalhandler",
+      "forwarded",
+      "fresh",
+      "function-bind",
+      "get-intrinsic",
+      "get-proto",
+      "gopd",
+      "has-symbols",
+      "hasown",
+      "http-errors",
+      "iconv-lite",
+      "ignore-by-default",
+      "inherits",
+      "ipaddr.js",
+      "is-binary-path",
+      "is-extglob",
+      "is-glob",
+      "is-number",
+      "luxon",
+      "math-intrinsics",
+      "media-typer",
+      "merge-descriptors",
+      "methods",
+      "mime-db",
+      "mime-types",
+      "minimatch",
+      "ms",
+      "negotiator",
+      "nodemon",
+      "normalize-path",
+      "object-inspect",
+      "on-finished",
+      "parseurl",
+      "path-to-regexp",
+      "picomatch",
+      "proxy-addr",
+      "pstree.remy",
+      "range-parser",
+      "raw-body",
+      "readdirp",
+      "safe-buffer",
+      "safer-buffer",
+      "semver",
+      "send",
+      "serve-static",
+      "setprototypeof",
+      "side-channel",
+      "side-channel-list",
+      "side-channel-map",
+      "side-channel-weakmap",
+      "simple-update-notifier",
+      "statuses",
+      "to-regex-range",
+      "toidentifier",
+      "touch",
+      "type-is",
+      "undefsafe",
+      "unpipe",
+      "utils-merge",
+      "vary"
+    ]
+  },
+  "structure": {
+    "type": "folder",
+    "name": "AkilahMainGateway",
+    "children": [
+      {
+        "type": "folder",
+        "name": ".vscode",
+        "children": [
+          {
+            "type": "file",
+            "name": "extensions.json"
+          }
+        ]
+      },
+      {
+        "type": "folder",
+        "name": "dashboard",
+        "children": [
+          {
+            "type": "file",
+            "name": "dashboard-server.js"
+          },
+          {
+            "type": "file",
+            "name": "index.html"
+          },
+          {
+            "type": "file",
+            "name": "script.js"
+          },
+          {
+            "type": "file",
+            "name": "style.css"
+          }
+        ]
+      },
+      {
+        "type": "folder",
+        "name": "data",
+        "children": [
+          {
+            "type": "file",
+            "name": "active__session.json"
+          },
+          {
+            "type": "file",
+            "name": "current__system__state.json"
+          },
+          {
+            "type": "file",
+            "name": "current__workingstate.json"
+          },
+          {
+            "type": "file",
+            "name": "gpt__state.json"
+          },
+          {
+            "type": "file",
+            "name": "gpt_synclog.json"
+          },
+          {
+            "type": "file",
+            "name": "index.js"
+          },
+          {
+            "type": "file",
+            "name": "notifications.json"
+          },
+          {
+            "type": "file",
+            "name": "read__me.json"
+          },
+          {
+            "type": "file",
+            "name": "stagingarea.json"
+          }
+        ]
+      },
+      {
+        "type": "file",
+        "name": "docker-compose.yml"
+      },
+      {
+        "type": "file",
+        "name": "generate-docs.js"
+      },
+      {
+        "type": "file",
+        "name": "package.json"
+      },
+      {
+        "type": "file",
+        "name": "read-me.js"
+      },
+      {
+        "type": "file",
+        "name": "readme.md"
+      },
+      {
+        "type": "folder",
+        "name": "src",
+        "children": [
+          {
+            "type": "file",
+            "name": "api_to_router_trigger.js"
+          },
+          {
+            "type": "file",
+            "name": "index.js"
+          },
+          {
+            "type": "file",
+            "name": "router.js"
+          },
+          {
+            "type": "file",
+            "name": "sadigptcache.js"
+          }
+        ]
+      }
+    ]
+  },
+  "files": [
+    {
+      "type": "file",
+      "name": "extensions.json",
+      "relativePath": ".vscode/extensions.json",
+      "size": 104,
+      "truncated": false,
+      "content": "{\n    \"recommendations\": [\n        \"openai.chatgpt\",\n        \"amazonwebservices.amazon-q-vscode\"\n    ]\n}"
+    },
+    {
+      "type": "file",
+      "name": "dashboard-server.js",
+      "relativePath": "dashboard/dashboard-server.js",
+      "size": 394,
+      "truncated": false,
+      "content": "const express = require('express');\nconst path = require('path');\nconst data = require('../data/index.js');\n\nconst app = express();\nconst PORT = process.env.DASHBOARD_PORT || 3001;\n\napp.use(express.static(path.join(__dirname)));\n\napp.get('/data/all', (req, res) => {\n  res.json(data);\n});\n\napp.listen(PORT, () => {\n  console.log(`📊 Dashboard server running at http://localhost:${PORT}`);\n});"
+    },
+    {
+      "type": "file",
+      "name": "index.html",
+      "relativePath": "dashboard/index.html",
+      "size": 1241,
+      "truncated": false,
+      "content": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>Akilah System Dashboard</title>\n  <link rel=\"stylesheet\" href=\"style.css\" />\n</head>\n<body>\n  <div class=\"container\">\n    <aside class=\"sidebar\">\n      <ul id=\"fileList\"></ul>\n    </aside>\n    <main class=\"content\">\n      <pre id=\"jsonOutput\">Select a file from the sidebar to view its contents.</pre>\n    </main>\n  </div>\n\n  <script>\n    window.addEventListener('DOMContentLoaded', () => {\n      const sidebar = document.getElementById('fileList');\n      const output = document.getElementById('jsonOutput');\n\n      fetch('/data/all')\n        .then(res => res.json())\n        .then(data => {\n          Object.entries(data).forEach(([key, value]) => {\n            const li = document.createElement('li');\n            li.textContent = key.replace(/__/g, ' ').replace(/_/g, ' ').toUpperCase();\n            li.dataset.key = key;\n            li.addEventListener('click', () => {\n              output.textContent = JSON.stringify(value, null, 2);\n            });\n            sidebar.appendChild(li);\n          });\n        })\n        .catch(err => {\n          output.textContent = `❌ Failed to load data: ${err.message}`;\n        });\n    });\n  </script>\n</body>\n</html>"
+    },
+    {
+      "type": "file",
+      "name": "script.js",
+      "relativePath": "dashboard/script.js",
+      "size": 658,
+      "truncated": false,
+      "content": "// dashboard/script.js\n\nwindow.addEventListener('DOMContentLoaded', () => {\n  fetch('/data/all')\n    .then(res => res.json())\n    .then(data => {\n      const dashboardRoot = document.getElementById('dashboard');\n\n      Object.entries(data).forEach(([key, value]) => {\n        const section = document.createElement('section');\n        section.innerHTML = `\n          <h2>${key.replace(/__/g, ' ').replace(/_/g, ' ').toUpperCase()}</h2>\n          <pre>${JSON.stringify(value, null, 2)}</pre>\n        `;\n        dashboardRoot.appendChild(section);\n      });\n    })\n    .catch(err => {\n      console.error('❌ Failed to load dashboard data:', err);\n    });\n});"
+    },
+    {
+      "type": "file",
+      "name": "style.css",
+      "relativePath": "dashboard/style.css",
+      "size": 892,
+      "truncated": false,
+      "content": "body {\n  margin: 0;\n  font-family: sans-serif;\n  display: flex;\n  height: 100vh;\n  overflow: hidden;\n}\n\n.container {\n  display: flex;\n  width: 100%;\n  height: 100%;\n}\n\n.sidebar {\n  width: 220px;\n  background-color: #111;\n  color: white;\n  overflow-y: auto;\n  padding: 0;\n  flex-shrink: 0;\n}\n\n.sidebar ul {\n  list-style: none;\n  padding: 0;\n  margin: 0;\n}\n\n.sidebar li {\n  padding: 12px;\n  cursor: pointer;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.sidebar li:hover {\n  background-color: #333;\n}\n\n.content {\n  flex-grow: 1;\n  padding: 20px;\n  background: #f4f4f4;\n  overflow: auto;\n}\n\npre {\n  background: white;\n  padding: 20px;\n  border-radius: 4px;\n  font-family: monospace;\n  font-size: 14px;\n  max-height: 100%;\n  max-width: 100%;\n  width: 100%;\n  height: 100%;\n  overflow: auto;\n  white-space: pre-wrap;\n  word-wrap: break-word;\n  box-sizing: border-box;\n}"
+    },
+    {
+      "type": "file",
+      "name": "active__session.json",
+      "relativePath": "data/active__session.json",
+      "size": 256,
+      "truncated": false,
+      "content": "{\n  \"session_id\": \"session_2025_05_25_10_19\",\n  \"user\": \"IncredibleSadi\",\n  \"mode\": \"local_dev\",\n  \"interface\": \"Visual Studio Code + Terminal\",\n  \"server_state\": \"online\",\n  \"dashboard_state\": \"accessible\",\n  \"last_sync\": \"2025-05-25T10:19:38.942-04:00\"\n}"
+    },
+    {
+      "type": "file",
+      "name": "current__system__state.json",
+      "relativePath": "data/current__system__state.json",
+      "size": 3788,
+      "truncated": false,
+      "content": "{\n  \"description\": \"🧠 Akilah System — Current Local Build State\",\n  \"environment\": \"local_dev\",\n  \"project_root\": \"AkilahMainGateway\",\n  \"status\": \"active\",\n  \"architecture\": {\n    \"api_gateway\": {\n      \"location\": \"src/index.js\",\n      \"role\": \"Acts as the primary RESTful API endpoint for incoming GPT POST requests\",\n      \"port\": 8080,\n      \"status\": \"online\",\n      \"behavior\": {\n        \"request_type\": \"POST /sync\",\n        \"logging\": \"Writes full JSON payload to data/stagingarea.json\",\n        \"uid_generation\": \"Timestamp in ISO format with Eastern Time adjustment\",\n        \"next_step\": \"Triggers api_to_router_trigger.js with UID\",\n        \"confirmation\": \"Responds back to GPT with status = awaiting\"\n      }\n    },\n    \"router_trigger\": {\n      \"location\": \"src/api_to_router_trigger.js\",\n      \"role\": \"Takes UID, appends status update to staging area, and dispatches router.js\",\n      \"status\": \"live\",\n      \"current_behavior\": \"Acknowledges receipt only (router dispatching logic stubbed)\"\n    },\n    \"router\": {\n      \"location\": \"src/router.js\",\n      \"role\": \"Reads payload by UID from stagingarea.json and determines routing action\",\n      \"status\": \"awaiting_extended_logic\"\n    }\n  },\n  \"dashboard\": {\n    \"location\": \"dashboard/\",\n    \"entry\": \"dashboard-server.js\",\n    \"port\": 8081,\n    \"status\": \"accessible\",\n    \"frontend\": {\n      \"HTML\": \"index.html (tailwind-style layout)\",\n      \"JS\": \"script.js auto-fetches /data/all\",\n      \"CSS\": \"style.css defines layout & sidebar\",\n      \"live_data\": \"dashboard displays all JSON files in /data via index.js dynamic loader\"\n    },\n    \"backend\": {\n      \"server\": \"Express server serves /data/all with allData object from data/index.js\",\n      \"refresh_rate\": \"Auto-refresh every 5s for overview panel\",\n      \"connection_status\": \"Monitored with dynamic retry + visual indicator\"\n    }\n  },\n  \"data_pipeline\": {\n    \"files_written\": [\n      \"stagingarea.json\",\n      \"active__session.json\",\n      \"current__system__state.json\",\n      \"current__workingstate.json\",\n      \"gpt__state.json\",\n      \"gpt_synclog.json\"\n    ],\n    \"file_summary\": {\n      \"stagingarea.json\": \"Raw GPT requests appended with timestamp and status\",\n      \"active__session.json\": \"Tracks current session info: ID, user, mode, sync time\",\n      \"current__system__state.json\": \"Defines system entry points, logging modes, active routes\",\n      \"current__workingstate.json\": \"Tracks what module is active and what’s next\",\n      \"gpt__state.json\": \"Stores GPT state: active sessions, status, system context\",\n      \"gpt_synclog.json\": \"Placeholder for future logging of GPT agent sync events\"\n    },\n    \"repo_docs\": {\n      \"repo__map.json\": \"Generated from generate-docs.js, captures full repo file/folder tree with content\",\n      \"read__me.json\": \"Programmatic readme version for live viewing inside dashboard\"\n    }\n  },\n  \"deployment_mode\": {\n    \"mode\": \"local\",\n    \"tools\": {\n      \"docker\": \"Dockerfile for API and Dashboard, exposed on 8080 and 8081 respectively\",\n      \"docker_compose\": \"docker-compose.yml orchestrates build and dual-server startup\",\n      \"manual_trigger\": \"curl POST to localhost:8080/sync for testing\"\n    },\n    \"next_steps\": [\n      \"Integrate router.js logic to dispatch actions based on payload\",\n      \"Add GPT-specific trigger logic (gpt_synclog.json)\",\n      \"Begin GitHub repo connection for auto-deploy on push\",\n      \"Secure and clean up environment variables (cloud-run ready)\",\n      \"Migrate local build to cloud-hosted Cloud Run pipeline\"\n    ]\n  },\n  \"cloud_targets\": {\n    \"provider\": \"Google Cloud Run (planned)\",\n    \"project_id\": \"akilahstack\",\n    \"region\": \"us-central1\",\n    \"service_account\": \"858627689875-compute@developer.gserviceaccount.com\",\n    \"iam_ready\": true\n  }\n}"
+    },
+    {
+      "type": "file",
+      "name": "current__workingstate.json",
+      "relativePath": "data/current__workingstate.json",
+      "size": 2757,
+      "truncated": false,
+      "content": "{\n  \"build_phase\": \"local_dev_setup\",\n  \"status\": \"in_progress\",\n  \"last_updated\": \"2025-05-25T14:30:00-04:00\",\n  \"project\": \"AkilahMainGateway\",\n  \"entry_point\": \"src/index.js\",\n  \"dashboard_server\": \"dashboard/dashboard-server.js\",\n  \"active_servers\": [\n    {\n      \"name\": \"API Gateway\",\n      \"port\": 8080,\n      \"status\": \"live\",\n      \"description\": \"Accepts POST requests from Custom GPT, writes to stagingarea.json and triggers router flow.\"\n    },\n    {\n      \"name\": \"Dashboard Viewer\",\n      \"port\": 8081,\n      \"status\": \"live\",\n      \"description\": \"Serves current session logs and JSON file system from /data via static express app.\"\n    }\n  ],\n  \"core_files\": {\n    \"gateway_logic\": [\n      \"src/index.js\",\n      \"src/api_to_router_trigger.js\",\n      \"src/router.js\"\n    ],\n    \"dashboard_files\": [\n      \"dashboard/dashboard-server.js\",\n      \"dashboard/index.html\",\n      \"dashboard/script.js\",\n      \"dashboard/style.css\"\n    ],\n    \"data_files\": [\n      \"active__session.json\",\n      \"current__system__state.json\",\n      \"current__workingstate.json\",\n      \"gpt__state.json\",\n      \"gpt_synclog.json\",\n      \"stagingarea.json\",\n      \"read__me.json\",\n      \"repo__map.json\",\n      \"notifications.json\"\n    ],\n    \"generators\": [\n      \"generate-docs.js\",\n      \"read-me.js\"\n    ]\n  },\n  \"immediate_next_steps\": [\n    \"➤ Add refresh and filtering controls to dashboard interface\",\n    \"➤ Append file update timestamps into notifications.json\",\n    \"➤ Build notifications.js to update notifications.json programmatically\",\n    \"➤ Integrate generate-docs.js and read-me.js into triggerable utilities via a CLI or dashboard\",\n    \"➤ Move toward runtime automation of doc regeneration on change\"\n  ],\n  \"structure_expansion\": {\n    \"folders_to_create\": [\n      \"src/sdk\",\n      \"src/routes\"\n    ],\n    \"sdk_targets\": [\n      \"Google Cloud SDK (Logging, Tasks, IAM)\",\n      \"Firebase Admin SDK\",\n      \"Notion SDK\",\n      \"GitHub REST SDK\",\n      \"AWS SDK\",\n      \"Google Workspace SDK\"\n    ],\n    \"route_categories\": [\n      \"firebase_routes\",\n      \"notion_routes\",\n      \"github_routes\",\n      \"aws_routes\",\n      \"gmail_routes\",\n      \"google_routes\",\n      \"sheets_routes\",\n      \"microsoft_routes\",\n      \"azure_routes\"\n    ]\n  },\n  \"finalization_plan\": {\n    \"version_control\": {\n      \"goal\": \"Push to new GitHub repository\",\n      \"repo_naming\": \"akilah-api-gateway\",\n      \"readme_source\": \"data/read__me.json\"\n    },\n    \"deployment\": {\n      \"method\": \"CloudBuild.yaml\",\n      \"platform\": \"Google Cloud Run\",\n      \"region\": \"us-central1\",\n      \"environment_secrets\": \"Stored via CloudBuild environment variables (not GitHub Secrets)\",\n      \"build_trigger\": \"Push to main branch or manual from Cloud Console\"\n    }\n  }\n}"
+    },
+    {
+      "type": "file",
+      "name": "gpt__state.json",
+      "relativePath": "data/gpt__state.json",
+      "size": 96,
+      "truncated": false,
+      "content": "{\n  \"lastSync\": null,\n  \"systemContext\": {},\n  \"activeSessions\": [],\n  \"status\": \"initialized\"\n}"
+    },
+    {
+      "type": "file",
+      "name": "gpt_synclog.json",
+      "relativePath": "data/gpt_synclog.json",
+      "size": 2,
+      "truncated": false,
+      "content": "[]"
+    },
+    {
+      "type": "file",
+      "name": "index.js",
+      "relativePath": "data/index.js",
+      "size": 766,
+      "truncated": false,
+      "content": "// data/index.js\n\nconst fs = require('fs');\nconst path = require('path');\n\nconst dataDir = __dirname;\nconst allData = {};\n\nfs.readdirSync(dataDir).forEach(file => {\n  const fullPath = path.join(dataDir, file);\n\n  // Skip if it's a directory (like archive), hidden, not JSON, or this file itself\n  if (\n    file === 'index.js' ||\n    file === 'archive' ||\n    file.startsWith('.') ||\n    !file.endsWith('.json') ||\n    fs.lstatSync(fullPath).isDirectory()\n  ) {\n    return;\n  }\n\n  const key = file.replace('.json', ''); // Clean filename as key\n  try {\n    const content = fs.readFileSync(fullPath, 'utf8');\n    allData[key] = JSON.parse(content);\n  } catch (err) {\n    console.warn(`⚠️ Failed to load ${file}: ${err.message}`);\n  }\n});\n\nmodule.exports = allData;"
+    },
+    {
+      "type": "file",
+      "name": "notifications.json",
+      "relativePath": "data/notifications.json",
+      "size": 19,
+      "truncated": false,
+      "content": "{\n  \"updates\": []\n}"
+    },
+    {
+      "type": "file",
+      "name": "read__me.json",
+      "relativePath": "data/read__me.json",
+      "size": 6426,
+      "truncated": false,
+      "content": "{\n  \"Overview\": \"🧠 Akilah System: API Gateway— Initial Architecture\\n\\nOverview\\n\\nThis project provides a stateless HTTPS REST API endpoint designed for use with Custom GPTs on ChatGPT.com. It serves as the initial handshake between GPT and your server — capturing session input, logging it, and responding with live system context.\",\n  \"1. 📒 Accepts a raw JSON payload from GPT\": \"POST /sync\\n\\t•\\tAccepts a raw JSON payload from GPT\\n\\t•\\tNo user ID or authentication required\\n\\t•\\tIntended for personal GPT agent syncs\\n\\n---\",\n  \"2. 📒 Logs the Incoming Payload to `stagingarea.json` and Calls `api_to_router_trigger.js`\": \"When a POST request is received at the API Gateway, the raw payload is not immediately processed. Instead, it is written to a centralized log file called `stagingarea.json`.\",\n  \"1. A new entry is added to the top of the file and includes:\": \"- **timestamp**: ISO 8601 format based on current time in Eastern Time\\n- **day**: Day of the week (e.g., \\\"Monday\\\")\\n- **date**: Human-readable format like `dd_MM_yy`\\n- **time**: 12-hour time format like `hh_mm_a`\\n- **month**: Month name or number from the timestamp\\n- **week_of**: Computed range (Monday–Sunday) like `20_05_25–26_05_25`\\n- **method**: HTTP method (usually \\\"POST\\\")\\n- **payload**: The raw JSON sent by GPT\\n- **status**: `\\\"awaiting\\\"` (default — to be processed by the router)\\n\\nThis entry acts as a structured intake log — it’s the only thing created at the time of request. No direct execution occurs yet.\",\n  \"2. Next, the API Gateway immediately calls `api_to_router_trigger.js`:\": \"- `routertrigger.js` is dispatched with the ISO timestamp as the UID.\\n\\n---\",\n  \"3. 📦 Simultaneously returns caching files (via `sadigptcache.js`)\": \"This gateway defers to `sadigptcache.js`, which dynamically selects a bundle of small JSON files to return to GPT. These files represent your current state.\\n\\nPossible outputs include:\\n- `current__system__state.json`\\n- `current__workingstate.json`\\n- `active__session.json`\\n- `gpt__state.json`\\n- Optional: `bootcamp.json`, `hallucination_guardrails.json`\\n\\n> This enables Custom GPTs to sync their understanding of the system without storing any memory themselves.\\n\\n---\",\n  \"4. 🗂️ Logs to `gptsynclog.json`\": \"In addition to the structured staging entry, a summary entry is also added to `gptsynclog.json` for long-term tracking. This includes:\\n- Timestamp\\n- GPT interaction metadata\\n- Event type (e.g., `\\\"sync\\\"`, `\\\"boot\\\"`, `\\\"recovery\\\"`)\\n- File bundle returned\\n- Any flags or special instructions\\n\\n---\\n\\n---\",\n  \"📁 Required Files (So Far)\": \"- `index.js`  \\n  Main Express server. Accepts POST requests and logs them to `stagingarea.json`.\\n\\n- `api_to_router_trigger.js`  \\n  Called by `index.js` after logging. Passes the request UID to `staging.js`.\\n\\n- `staging.js`  \\n  Processes new entries in `stagingarea.json`. Determines intent and marks routing status.\\n\\n- `stagingarea.json`  \\n  Append-only log of incoming GPT requests with status tracking.\\n\\n- `gpt_synclog.json`  \\n  Lightweight sync log. Records GPT requests, timestamps, and return bundles.\\n\\n- `current__system__state.json`  \\n  The only required cached file for now. Returned to GPT in every response.\\n\\n---\",\n  \"🔐 Service Account Permissions\": \"This gateway is fully managed through a default Google Cloud **Compute Service Account**:858627689875-compute@developer.gserviceaccount.com\",\n  \"📍 Project: `akilahstack`\": \"Project Number: `858627689875`  \\nRegion: `us-central1`\\n\\n---\",\n  \"✅ Assigned IAM Roles\": \"The service account currently has **full access to all required GCP services**, including:\",\n  \"🧠 Core Compute\": \"- `roles/run.admin`\\n- `roles/run.invoker`\\n- `roles/cloudfunctions.admin`\\n- `roles/cloudfunctions.developer`\\n- `roles/cloudfunctions.invoker`\",\n  \"🛠️ Build & Deployment\": \"- `roles/cloudbuild.builds.editor`\\n- `roles/cloudbuild.builds.viewer`\\n- `roles/artifactregistry.reader`\\n- `roles/clouddeploy.admin`\\n- `roles/storage.admin`\",\n  \"🧠 Data, Logging, and Monitoring\": \"- `roles/logging.admin`\\n- `roles/logging.viewer`\\n- `roles/monitoring.viewer`\\n- `roles/pubsub.publisher`\\n- `roles/pubsub.subscriber`\",\n  \"🔐 Identity & Secrets\": \"- `roles/iam.serviceAccountUser`\\n- `roles/iam.serviceAccountCreator`\\n- `roles/secretmanager.secretAccessor`\\n- `roles/runtimeconfig.admin`\",\n  \"⚙️ Async & Triggers\": \"- `roles/cloudtasks.enqueuer`\\n- `roles/cloudscheduler.jobRunner`\\n\\n---\",\n  \"⚠️ Not Added\": \"- `roles/appengine.admin` — intentionally excluded, not currently used\\n\\n---\\n\\nThis service account can:\\n- Deploy and run Cloud Run and Functions\\n- Manage and access build pipelines\\n- Read/write secrets and logs\\n- Schedule jobs and queue tasks\\n- Serve as the backbone for the Akilah API Gateway system\\n\\n---\",\n  \"🚀 Deployment Strategy\": \"The Akilah API Gateway is designed to run as a containerized REST service on **Google Cloud Run**, using **Cloud Build** for CI/CD. This ensures a secure, automated deployment pipeline without exposing credentials or using GitHub Actions.\",\n  \"✅ Deployment Flow\": \"1. Develop locally inside the `AkilahMainGateway/` folder\\n2. Push code to the connected GitHub repository\\n3. GitHub push triggers a **Cloud Build job** in GCP\\n4. Cloud Build:\\n   - Builds the container using the provided `Dockerfile`\\n   - Deploys it to Cloud Run\\n   - Uses the pre-authorized GCP **default compute service account**\\n\\n---\",\n  \"🔐 Authentication and Permissions\": \"- The system uses **Application Default Credentials (ADC)** — no service key file is required\\n- Deployed Cloud Run services inherit IAM roles from:858627689875-compute@developer.gserviceaccount.com\\n\\n- This service account has full access to Cloud Run, Firebase, Cloud Functions, Logging, Secrets, and more (see “🔐 Service Account Permissions” above)\\n\\n---\",\n  \"⚙️ Runtime Files\": \"- `.env`: Used for SDK keys, service routes, and config toggles\\n- `Dockerfile`: Defines the app runtime and build environment\\n- `.dockerignore`: Ensures sensitive/local files are not added to the Docker build\\n\\n> No `cloudbuild.yaml` is required for now — Cloud Build auto-detects the Dockerfile.\\n\\n---\",\n  \"❌ Not Used\": \"- GitHub Actions — all deployment is managed natively by Google Cloud Build\\n- `service-account-key.json` — replaced by built-in IAM and Workload Identity\"\n}"
+    },
+    {
+      "type": "file",
+      "name": "stagingarea.json",
+      "relativePath": "data/stagingarea.json",
+      "size": 1869,
+      "truncated": false,
+      "content": "[\n  {\n    \"timestamp\": \"2025-05-25T14:04:14.040-04:00\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"02_04_PM\",\n    \"month\": \"May\",\n    \"week_of\": \"19_05_25–25_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"message\": \"Hello from Custom GPT\",\n      \"type\": \"test\"\n    },\n    \"status\": \"awaiting\",\n    \"trigger_status\": \"triggered_router\",\n    \"triggered_at\": \"2025-05-25T18:04:14.054+00:00\",\n    \"router_status\": \"router_received\",\n    \"router_received_at\": \"2025-05-25T18:04:14.055+00:00\"\n  },\n  {\n    \"timestamp\": \"2025-05-25T13:14:51.446-04:00\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"01_14_PM\",\n    \"month\": \"May\",\n    \"week_of\": \"19_05_25–25_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"message\": \"Hello Akilah!\"\n    },\n    \"status\": \"awaiting\",\n    \"trigger_status\": \"triggered_router\",\n    \"triggered_at\": \"2025-05-25T17:14:51.489+00:00\",\n    \"router_status\": \"router_received\",\n    \"router_received_at\": \"2025-05-25T17:14:51.490+00:00\"\n  },\n  {\n    \"timestamp\": \"2025-05-25T11:23:19.001-04:00\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"11_23_AM\",\n    \"month\": \"May\",\n    \"week_of\": \"19_05_25–25_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"test\": \"hello\"\n    },\n    \"status\": \"awaiting\"\n  },\n  {\n    \"timestamp\": \"2025-05-25T10:19:38.942-04:00\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"10_19_AM\",\n    \"month\": \"May\",\n    \"week_of\": \"19_05_25–25_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"message\": \"Test payload from GPT on port 8080\"\n    },\n    \"status\": \"awaiting\"\n  },\n  {\n    \"timestamp\": \"2025-05-25T14:12:59.555Z\",\n    \"day\": \"Sunday\",\n    \"date\": \"25_05_25\",\n    \"time\": \"10_12_am\",\n    \"month\": \"May\",\n    \"week_of\": \"25_05_25-31_05_25\",\n    \"method\": \"POST\",\n    \"payload\": {\n      \"message\": \"hello GPT\"\n    },\n    \"status\": \"awaiting\"\n  }\n]"
+    },
+    {
+      "type": "file",
+      "name": "docker-compose.yml",
+      "relativePath": "docker-compose.yml",
+      "size": 432,
+      "truncated": false,
+      "content": "version: '3.9'\n\nservices:\n  api-gateway:\n    build:\n      context: .\n      dockerfile: Dockerfile\n    ports:\n      - \"8080:8080\"\n    environment:\n      - PORT=8080\n    volumes:\n      - .:/app\n    restart: unless-stopped\n\n  dashboard:\n    build:\n      context: .\n      dockerfile: Dockerfile.dashboard\n    ports:\n      - \"8081:8081\"\n    environment:\n      - DASHBOARD_PORT=8081\n    volumes:\n      - .:/app\n    restart: unless-stopped"
+    },
+    {
+      "type": "file",
+      "name": "generate-docs.js",
+      "relativePath": "generate-docs.js",
+      "size": 3174,
+      "truncated": false,
+      "content": "// generate-docs.js\n\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\n\nconst MAX_FILE_LENGTH = 50000;\nconst projectRoot = process.cwd();\nconst outputDir = path.join(projectRoot, 'data');\nconst archiveDir = path.join(outputDir, 'archive');\nconst currentMapPath = path.join(outputDir, 'repo__map.json');\nconst archiveMapPath = path.join(archiveDir, 'repo__map__archive.json');\n\nconst EXCLUDED_PATHS = ['.git', 'dist', 'build', 'archive', 'node_modules', 'package-lock.json', 'repo__map.json', 'repo__map__archive.json', 'projectdocs.md'];\nconst ALLOWED_EXTENSIONS = ['.js', '.json', '.md', '.html', '.css', '.env', '.txt', '.yml', '.sh'];\n\nlet filesMeta = [];\nlet folderCount = 0;\nlet fileCount = 0;\n\nfunction isExcluded(pathStr) {\n  return EXCLUDED_PATHS.some(ex => pathStr.includes(ex));\n}\n\nfunction getPackageNames(dir) {\n  try {\n    return fs.existsSync(dir) ? fs.readdirSync(dir).filter(p => !p.startsWith('.')) : [];\n  } catch {\n    return [];\n  }\n}\n\nfunction getIgnoreFiles(basePath) {\n  return fs.readdirSync(basePath).filter(f => f.endsWith('.gitignore') || f.endsWith('.dockerignore'));\n}\n\nfunction buildStructureTree(dir, base) {\n  const node = {\n    type: 'folder',\n    name: path.basename(dir),\n    children: []\n  };\n  folderCount++;\n\n  for (const item of fs.readdirSync(dir)) {\n    const fullPath = path.join(dir, item);\n    const relativePath = path.relative(base, fullPath);\n\n    if (isExcluded(relativePath)) continue;\n\n    if (fs.statSync(fullPath).isDirectory()) {\n      node.children.push(buildStructureTree(fullPath, base));\n    } else {\n      const ext = path.extname(item);\n      if (item === 'package.json' || ALLOWED_EXTENSIONS.includes(ext)) {\n        const stats = fs.statSync(fullPath);\n        fileCount++;\n\n        node.children.push({ type: 'file', name: item });\n\n        let content = '[unreadable]';\n        let truncated = false;\n\n        try {\n          content = fs.readFileSync(fullPath, 'utf8');\n          if (content.length > MAX_FILE_LENGTH) {\n            content = content.slice(0, MAX_FILE_LENGTH) + '\\n...[truncated]';\n            truncated = true;\n          }\n        } catch {}\n\n        filesMeta.push({\n          type: 'file',\n          name: item,\n          relativePath: relativePath,\n          size: stats.size,\n          truncated,\n          content\n        });\n      }\n    }\n  }\n\n  return node;\n}\n\n// Prepare folders\nif (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true });\nif (fs.existsSync(currentMapPath)) fs.renameSync(currentMapPath, archiveMapPath);\n\n// Build map\nconst structure = buildStructureTree(projectRoot, projectRoot);\nconst repoMap = {\n  meta: {\n    generated_at: DateTime.now().toISO(),\n    root: projectRoot,\n    note: 'Generated with structure + content separation',\n    foldersCount: folderCount,\n    filesCount: fileCount,\n    ignoreFiles: getIgnoreFiles(projectRoot),\n    packageNames: getPackageNames(path.join(projectRoot, 'node_modules'))\n  },\n  structure,\n  files: filesMeta\n};\n\n// Write new output\nfs.writeFileSync(currentMapPath, JSON.stringify(repoMap, null, 2));\nconsole.log(`✅ repo__map.json written to ${currentMapPath}`);"
+    },
+    {
+      "type": "file",
+      "name": "package.json",
+      "relativePath": "package.json",
+      "size": 632,
+      "truncated": false,
+      "content": "{\n  \"name\": \"akilah-api-gateway\",\n  \"version\": \"1.0.0\",\n  \"description\": \"Stateless API Gateway and Dashboard for GPT syncing and logging\",\n  \"main\": \"src/index.js\",\n  \"scripts\": {\n    \"start\": \"node src/index.js\",\n    \"dev\": \"nodemon src/index.js\",\n    \"dashboard\": \"node dashboard/dashboard-server.js\",\n    \"dev:dashboard\": \"nodemon dashboard/dashboard-server.js\",\n    \"test\": \"echo \\\"No tests yet\\\" && exit 0\"\n  },\n  \"dependencies\": {\n    \"dotenv\": \"^16.3.1\",\n    \"express\": \"^4.18.2\",\n    \"luxon\": \"^3.4.4\"\n  },\n  \"devDependencies\": {\n    \"nodemon\": \"^3.1.10\"\n  },\n  \"engines\": {\n    \"node\": \">=16.0.0\"\n  },\n  \"license\": \"MIT\"\n}"
+    },
+    {
+      "type": "file",
+      "name": "read-me.js",
+      "relativePath": "read-me.js",
+      "size": 1269,
+      "truncated": false,
+      "content": "const fs = require('fs');\nconst path = require('path');\n\nconst readmePath = path.join(__dirname, 'readme.md');\nconst outputPath = path.join(__dirname, 'data', 'read__me.json');\n\nfunction parseReadmeSections(markdown) {\n  const lines = markdown.split('\\n');\n  const sections = {};\n  let currentSection = 'Overview';\n  sections[currentSection] = [];\n\n  for (const line of lines) {\n    if (line.trim().startsWith('###')) {\n      currentSection = line.trim().replace(/^#+\\s*/, '');\n      sections[currentSection] = [];\n    } else if (line.trim().startsWith('##')) {\n      currentSection = line.trim().replace(/^#+\\s*/, '');\n      sections[currentSection] = [];\n    } else {\n      sections[currentSection].push(line);\n    }\n  }\n\n  // Flatten sections into strings\n  for (const key in sections) {\n    sections[key] = sections[key].join('\\n').trim();\n  }\n\n  return sections;\n}\n\nfunction generateReadmeJSON() {\n  try {\n    const markdown = fs.readFileSync(readmePath, 'utf8');\n    const json = parseReadmeSections(markdown);\n    fs.writeFileSync(outputPath, JSON.stringify(json, null, 2));\n    console.log('✅ readme.md parsed and saved to data/read__me.json');\n  } catch (err) {\n    console.error('❌ Failed to process readme.md:', err.message);\n  }\n}\n\ngenerateReadmeJSON();"
+    },
+    {
+      "type": "file",
+      "name": "readme.md",
+      "relativePath": "readme.md",
+      "size": 6231,
+      "truncated": false,
+      "content": "🧠 Akilah System: API Gateway— Initial Architecture\n\nOverview\n\nThis project provides a stateless HTTPS REST API endpoint designed for use with Custom GPTs on ChatGPT.com. It serves as the initial handshake between GPT and your server — capturing session input, logging it, and responding with live system context.\n\n### 1. 📒 Accepts a raw JSON payload from GPT\nPOST /sync\n\t•\tAccepts a raw JSON payload from GPT\n\t•\tNo user ID or authentication required\n\t•\tIntended for personal GPT agent syncs\n\n---\n\n\n### 2. 📒 Logs the Incoming Payload to `stagingarea.json` and Calls `api_to_router_trigger.js`\n\nWhen a POST request is received at the API Gateway, the raw payload is not immediately processed. Instead, it is written to a centralized log file called `stagingarea.json`.\n\n#### 1. A new entry is added to the top of the file and includes:\n- **timestamp**: ISO 8601 format based on current time in Eastern Time\n- **day**: Day of the week (e.g., \"Monday\")\n- **date**: Human-readable format like `dd_MM_yy`\n- **time**: 12-hour time format like `hh_mm_a`\n- **month**: Month name or number from the timestamp\n- **week_of**: Computed range (Monday–Sunday) like `20_05_25–26_05_25`\n- **method**: HTTP method (usually \"POST\")\n- **payload**: The raw JSON sent by GPT\n- **status**: `\"awaiting\"` (default — to be processed by the router)\n\nThis entry acts as a structured intake log — it’s the only thing created at the time of request. No direct execution occurs yet.\n\n#### 2. Next, the API Gateway immediately calls `api_to_router_trigger.js`:\n- `routertrigger.js` is dispatched with the ISO timestamp as the UID.\n\n---\n\n### 3. 📦 Simultaneously returns caching files (via `sadigptcache.js`)\n\nThis gateway defers to `sadigptcache.js`, which dynamically selects a bundle of small JSON files to return to GPT. These files represent your current state.\n\nPossible outputs include:\n- `current__system__state.json`\n- `current__workingstate.json`\n- `active__session.json`\n- `gpt__state.json`\n- Optional: `bootcamp.json`, `hallucination_guardrails.json`\n\n> This enables Custom GPTs to sync their understanding of the system without storing any memory themselves.\n\n---\n\n### 4. 🗂️ Logs to `gptsynclog.json`\n\nIn addition to the structured staging entry, a summary entry is also added to `gptsynclog.json` for long-term tracking. This includes:\n- Timestamp\n- GPT interaction metadata\n- Event type (e.g., `\"sync\"`, `\"boot\"`, `\"recovery\"`)\n- File bundle returned\n- Any flags or special instructions\n\n---\n\n---\n\n## 📁 Required Files (So Far)\n\n- `index.js`  \n  Main Express server. Accepts POST requests and logs them to `stagingarea.json`.\n\n- `api_to_router_trigger.js`  \n  Called by `index.js` after logging. Passes the request UID to `staging.js`.\n\n- `staging.js`  \n  Processes new entries in `stagingarea.json`. Determines intent and marks routing status.\n\n- `stagingarea.json`  \n  Append-only log of incoming GPT requests with status tracking.\n\n- `gpt_synclog.json`  \n  Lightweight sync log. Records GPT requests, timestamps, and return bundles.\n\n- `current__system__state.json`  \n  The only required cached file for now. Returned to GPT in every response.\n\n---\n\n## 🔐 Service Account Permissions\n\nThis gateway is fully managed through a default Google Cloud **Compute Service Account**:858627689875-compute@developer.gserviceaccount.com\n\n### 📍 Project: `akilahstack`  \nProject Number: `858627689875`  \nRegion: `us-central1`\n\n---\n\n### ✅ Assigned IAM Roles\n\nThe service account currently has **full access to all required GCP services**, including:\n\n#### 🧠 Core Compute\n- `roles/run.admin`\n- `roles/run.invoker`\n- `roles/cloudfunctions.admin`\n- `roles/cloudfunctions.developer`\n- `roles/cloudfunctions.invoker`\n\n#### 🛠️ Build & Deployment\n- `roles/cloudbuild.builds.editor`\n- `roles/cloudbuild.builds.viewer`\n- `roles/artifactregistry.reader`\n- `roles/clouddeploy.admin`\n- `roles/storage.admin`\n\n#### 🧠 Data, Logging, and Monitoring\n- `roles/logging.admin`\n- `roles/logging.viewer`\n- `roles/monitoring.viewer`\n- `roles/pubsub.publisher`\n- `roles/pubsub.subscriber`\n\n#### 🔐 Identity & Secrets\n- `roles/iam.serviceAccountUser`\n- `roles/iam.serviceAccountCreator`\n- `roles/secretmanager.secretAccessor`\n- `roles/runtimeconfig.admin`\n\n#### ⚙️ Async & Triggers\n- `roles/cloudtasks.enqueuer`\n- `roles/cloudscheduler.jobRunner`\n\n---\n\n### ⚠️ Not Added\n- `roles/appengine.admin` — intentionally excluded, not currently used\n\n---\n\nThis service account can:\n- Deploy and run Cloud Run and Functions\n- Manage and access build pipelines\n- Read/write secrets and logs\n- Schedule jobs and queue tasks\n- Serve as the backbone for the Akilah API Gateway system\n\n---\n\n## 🚀 Deployment Strategy\n\nThe Akilah API Gateway is designed to run as a containerized REST service on **Google Cloud Run**, using **Cloud Build** for CI/CD. This ensures a secure, automated deployment pipeline without exposing credentials or using GitHub Actions.\n\n### ✅ Deployment Flow\n\n1. Develop locally inside the `AkilahMainGateway/` folder\n2. Push code to the connected GitHub repository\n3. GitHub push triggers a **Cloud Build job** in GCP\n4. Cloud Build:\n   - Builds the container using the provided `Dockerfile`\n   - Deploys it to Cloud Run\n   - Uses the pre-authorized GCP **default compute service account**\n\n---\n\n### 🔐 Authentication and Permissions\n\n- The system uses **Application Default Credentials (ADC)** — no service key file is required\n- Deployed Cloud Run services inherit IAM roles from:858627689875-compute@developer.gserviceaccount.com\n\n- This service account has full access to Cloud Run, Firebase, Cloud Functions, Logging, Secrets, and more (see “🔐 Service Account Permissions” above)\n\n---\n\n### ⚙️ Runtime Files\n\n- `.env`: Used for SDK keys, service routes, and config toggles\n- `Dockerfile`: Defines the app runtime and build environment\n- `.dockerignore`: Ensures sensitive/local files are not added to the Docker build\n\n> No `cloudbuild.yaml` is required for now — Cloud Build auto-detects the Dockerfile.\n\n---\n\n### ❌ Not Used\n- GitHub Actions — all deployment is managed natively by Google Cloud Build\n- `service-account-key.json` — replaced by built-in IAM and Workload Identity"
+    },
+    {
+      "type": "file",
+      "name": "api_to_router_trigger.js",
+      "relativePath": "src/api_to_router_trigger.js",
+      "size": 945,
+      "truncated": false,
+      "content": "// src/api_to_router_trigger.js\n\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\nconst { triggerRouter } = require('./router');\n\nfunction triggerRouterFromAPI(uid) {\n  console.log(`🔁 Triggering router.js with UID: ${uid}`);\n\n  const stagingPath = path.join(__dirname, '../data/stagingarea.json');\n  if (!fs.existsSync(stagingPath)) return;\n\n  const stagingData = JSON.parse(fs.readFileSync(stagingPath, 'utf-8'));\n  const index = stagingData.findIndex(entry => entry.timestamp === uid);\n\n  if (index !== -1) {\n    const now = DateTime.now().toISO();\n    stagingData[index].trigger_status = 'triggered_router';\n    stagingData[index].triggered_at = now;\n    fs.writeFileSync(stagingPath, JSON.stringify(stagingData, null, 2));\n  } else {\n    console.warn(`⚠️ UID ${uid} not found in stagingarea.json`);\n  }\n\n  triggerRouter(uid);\n}\n\nmodule.exports = {\n  triggerRouter: triggerRouterFromAPI\n};"
+    },
+    {
+      "type": "file",
+      "name": "index.js",
+      "relativePath": "src/index.js",
+      "size": 1696,
+      "truncated": false,
+      "content": "// src/index.js\n\nconst express = require('express');\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\nrequire('dotenv').config();\n\nconst app = express();\nconst PORT = process.env.PORT || 8080;\n\napp.use(express.json());\n\n// POST /sync endpoint (logs and appends to stagingarea.json)\napp.post('/sync', (req, res) => {\n  try {\n    const payload = req.body;\n\n    const now = DateTime.now().setZone('America/New_York');\n    const isoTimestamp = now.toISO();\n    const entry = {\n      timestamp: isoTimestamp,\n      day: now.weekdayLong,\n      date: now.toFormat('dd_MM_yy'),\n      time: now.toFormat('hh_mm_a'),\n      month: now.toFormat('MMMM'),\n      week_of: now.startOf('week').toFormat('dd_MM_yy') + '–' + now.endOf('week').toFormat('dd_MM_yy'),\n      method: 'POST',\n      payload,\n      status: 'awaiting'\n    };\n\n    const stagingPath = path.join(__dirname, '../data/stagingarea.json');\n    const stagingData = fs.existsSync(stagingPath) ? JSON.parse(fs.readFileSync(stagingPath, 'utf-8')) : [];\n    stagingData.unshift(entry);\n    fs.writeFileSync(stagingPath, JSON.stringify(stagingData, null, 2));\n\n    // Trigger API to router trigger with the UID (timestamp)\n    const { triggerRouter } = require('./api_to_router_trigger');\n    triggerRouter(isoTimestamp);\n\n    res.status(200).json({\n      uid: isoTimestamp,\n      status: 'received',\n      message: 'Payload logged and processing triggered.'\n    });\n  } catch (err) {\n    console.error('Error in /sync:', err);\n    res.status(500).json({ error: 'Internal Server Error' });\n  }\n});\n\napp.listen(PORT, () => {\n  console.log(`✅ Akilah API Gateway running at http://localhost:${PORT}`);\n});"
+    },
+    {
+      "type": "file",
+      "name": "router.js",
+      "relativePath": "src/router.js",
+      "size": 843,
+      "truncated": false,
+      "content": "// src/router.js\n\nconst fs = require('fs');\nconst path = require('path');\nconst { DateTime } = require('luxon');\n\nfunction triggerRouter(uid) {\n  const stagingPath = path.join(__dirname, '../data/stagingarea.json');\n  if (!fs.existsSync(stagingPath)) return;\n\n  const stagingData = JSON.parse(fs.readFileSync(stagingPath, 'utf-8'));\n  const index = stagingData.findIndex(entry => entry.timestamp === uid);\n\n  if (index !== -1) {\n    const now = DateTime.now().toISO();\n    stagingData[index].router_status = 'router_received';\n    stagingData[index].router_received_at = now;\n    fs.writeFileSync(stagingPath, JSON.stringify(stagingData, null, 2));\n    console.log(`✅ router.js acknowledged UID ${uid}`);\n  } else {\n    console.warn(`⚠️ UID ${uid} not found in stagingarea.json (router.js)`);\n  }\n}\n\nmodule.exports = {\n  triggerRouter\n};"
+    },
+    {
+      "type": "file",
+      "name": "sadigptcache.js",
+      "relativePath": "src/sadigptcache.js",
+      "size": 0,
+      "truncated": false,
+      "content": ""
+    }
+  ]
+}
