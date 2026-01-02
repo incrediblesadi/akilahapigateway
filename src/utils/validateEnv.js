@@ -68,7 +68,7 @@ function validateEnvironment() {
   
   // Check required variables
   for (const [key, description] of Object.entries(REQUIRED_ENV_VARS)) {
-    if (!process.env[key]) {
+    if (!(key in process.env) || process.env[key] === undefined || process.env[key] === null) {
       missing.push(`  - ${key}: ${description}`);
     }
   }
@@ -87,7 +87,7 @@ function validateEnvironment() {
   
   // Check optional variables and provide warnings
   for (const [key, description] of Object.entries(OPTIONAL_ENV_VARS)) {
-    if (!process.env[key]) {
+    if (!(key in process.env) || process.env[key] === undefined || process.env[key] === null) {
       warnings.push(`  - ${key}: ${description}`);
     }
   }
@@ -114,11 +114,11 @@ function validateEnvironment() {
 function getEnvVar(key, defaultValue = undefined) {
   const value = process.env[key];
   
-  if (!value && defaultValue === undefined && REQUIRED_ENV_VARS[key]) {
+  if ((value === undefined || value === null) && defaultValue === undefined && REQUIRED_ENV_VARS[key]) {
     throw new Error(`Required environment variable ${key} is not set`);
   }
   
-  return value || defaultValue;
+  return value !== undefined && value !== null ? value : defaultValue;
 }
 
 /**
