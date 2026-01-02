@@ -1,7 +1,12 @@
 const { Octokit } = require("@octokit/rest");
 
+// Validate that GITHUB_PAT environment variable is set
+if (!process.env.GITHUB_PAT) {
+  throw new Error('GITHUB_PAT environment variable is required but not set');
+}
+
 const octokit = new Octokit({
-  auth: process.env.GITHUB_PAT || 'your-actual-token'
+  auth: process.env.GITHUB_PAT
 });
 
 async function getGitHubData() {

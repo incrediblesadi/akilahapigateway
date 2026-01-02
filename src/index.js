@@ -1,5 +1,9 @@
 const express = require('express');
+const { validateEnvironment } = require('./utils/validateEnv');
 const routes = require('./routes/loader');
+
+// Validate environment variables before starting the server
+validateEnvironment();
 
 const app = express();
 const PORT = process.env.PORT || 8080;
