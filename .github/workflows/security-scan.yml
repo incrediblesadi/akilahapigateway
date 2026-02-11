@@ -1,0 +1,75 @@
+name: Security Scan - Block Secrets
+
+on:
+  push:
+    branches: [main, develop, staging]
+  pull_request:
+    branches: [main]
+
+jobs:
+  detect-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for .env files with secrets
+        run: |
+          echo "🔍 Scanning for exposed secrets..."
+
+          # Check if .env exists and has actual secrets (not just comments)
+          if [ -f ".env" ]; then
+            # Count non-comment, non-empty lines that look like secrets
+            SECRET_LINES=$(grep -E "^[A-Z_]+=.{10,}" .env 2>/dev/null | grep -v "^#" | wc -l)
+            if [ "$SECRET_LINES" -gt 0 ]; then
+              echo "❌ ERROR: .env file contains $SECRET_LINES potential secrets!"
+              echo "The .env file should NOT be committed to the repository."
+              echo ""
+              echo "To fix this:"
+              echo "1. Remove secrets from .env"
+              echo "2. Use GitHub Secrets instead"
+              echo "3. Run: git rm --cached .env"
+              exit 1
+            fi
+          fi
+
+          echo "✅ No exposed secrets detected in .env"
+
+      - name: Scan for common secret patterns
+        run: |
+          echo "🔍 Scanning for secret patterns in code..."
+
+          # Patterns that indicate secrets (case insensitive)
+          PATTERNS=(
+            "sk-proj-[A-Za-z0-9]{20,}"           # OpenAI keys
+            "AKIA[A-Z0-9]{16}"                   # AWS Access Keys
+            "github_pat_[A-Za-z0-9_]{20,}"       # GitHub PATs
+            "ghp_[A-Za-z0-9]{36}"                # GitHub tokens
+            "secret_[A-Za-z0-9]{40,}"            # Notion secrets
+            "ntn_[A-Za-z0-9]{40,}"               # Notion tokens
+            "GOCSPX-[A-Za-z0-9-]{20,}"           # Google OAuth secrets
+          )
+
+          FOUND_SECRETS=0
+          for pattern in "${PATTERNS[@]}"; do
+            MATCHES=$(grep -rE "$pattern" --include="*.js" --include="*.json" --include="*.yml" --include="*.yaml" --include="*.env" --include="*.md" . 2>/dev/null | grep -v node_modules | grep -v ".git/" || true)
+            if [ -n "$MATCHES" ]; then
+              echo "❌ Found potential secret matching pattern: $pattern"
+              echo "$MATCHES" | head -3
+              FOUND_SECRETS=1
+            fi
+          done
+
+          if [ "$FOUND_SECRETS" -eq 1 ]; then
+            echo ""
+            echo "❌ ERROR: Potential secrets detected in repository!"
+            echo "Please remove these before pushing."
+            exit 1
+          fi
+
+          echo "✅ No secret patterns detected in code"
+
+      - name: Success
+        run: echo "✅ Security scan passed - no secrets detected"

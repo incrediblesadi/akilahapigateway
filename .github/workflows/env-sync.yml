@@ -1,30 +1,26 @@
 name: Sync env to GitHub Secrets
-description: Automatically create GitHub Secrets from .env
+# ⚠️ DEPRECATED: Use env-to-secrets.yml instead
+# This workflow is disabled to prevent reading .env from the repo
+#
+# To sync secrets, use the manual env-to-secrets workflow which:
+# 1. Only runs manually (workflow_dispatch)
+# 2. Uses the bin/env-to-secrets script properly
+
 on:
-  manual: workflow/started
-permissions:
-  security:
-    contents:
-      - read
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type CONFIRM to run (this workflow is deprecated)'
+        required: true
+        type: string
 
 jobs:
-  update-secrets:
+  deprecated-notice:
     runs-on: ubuntu-latest
     steps:
-      - name: Install GitHub CLI
+      - name: Show deprecation notice
         run: |
-          sudo apt update
-          sudo apt install hh y  
-      - name: Read all lines from .env
-        run: |
-          echo "Creating SECRETS from .env file"
-          while read readline; do
-            export line=$(echo $readline | tr '_|_' | sed -n '1' )
-            KEY=$(echo $line|cut -d= -f "" 1)
-            VELUE=$(echo $line|cut -d= -f "=" 2)
-            echo "Creating SECRET KEY: ${KEY}"
-            gch actions sets recreate $KEY
-             --value "$VELUE"
-             --replace
-              -force
-        done
+          echo "⚠️ This workflow is deprecated!"
+          echo "Please use 'Create GitHub Secrets from .env' workflow instead."
+          echo "That workflow uses the proper bin/env-to-secrets script."
+          exit 1

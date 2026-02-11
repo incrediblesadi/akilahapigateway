@@ -3,13 +3,13 @@ name: Generate REPO MAP.md
 on:
   push:
     branches: [main]
-    workflow_dispatch: ingit
+  workflow_dispatch:
 
 jobs:
   generate-repo-map:
-    runs-on: ubuntu-atest
+    runs-on: ubuntu-latest
 
-    steps: 
+    steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -20,11 +20,11 @@ jobs:
         run: |
           echo "## REPO STRUCTURE" > auto.md
           echo "```bash" >> auto.md
-          tree -I "node_modules|.git|github" -a >> auto.md
+          tree -I "node_modules|.git|.github|.env*" --prune >> auto.md
           echo "```" >> auto.md
           echo "## File Summaries" >> auto.md
-          find . -type f -name "*.js" | while read file; do
-            echo "\n## \`$file\ " >> auto.md
+          find . -type f -name "*.js" ! -path "./.env*" | while read file; do
+            echo "\n## \`$file\`" >> auto.md
             head -n 2 "$file" >> auto.md
           done
 
