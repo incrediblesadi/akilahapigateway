@@ -1,9 +1,4 @@
-name: Generate REPO MAP.md
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
+# DELETED - Auto-generation removed
 
 jobs:
   generate-repo-map:

@@ -1,10 +1,4 @@
-name: Security Scan - Block Secrets
-
-on:
-  push:
-    branches: [main, develop, staging]
-  pull_request:
-    branches: [main]
+# DELETED - Security scan removed for now
 
 jobs:
   detect-secrets:

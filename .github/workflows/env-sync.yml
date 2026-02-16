@@ -1,6 +1,4 @@
-name: Sync env to GitHub Secrets
-# ⚠️ DEPRECATED: Use env-to-secrets.yml instead
-# This workflow is disabled to prevent reading .env from the repo
+# DELETED - Workflow was already deprecated and broken
 #
 # To sync secrets, use the manual env-to-secrets workflow which:
 # 1. Only runs manually (workflow_dispatch)

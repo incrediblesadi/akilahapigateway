@@ -1,22 +1,2 @@
-name: Log Deploy Status
-on:
-  push:
-    branches:
-      - main
-
-permissions:
-  contents: write
-
-jobs:
-  deploy:
-    run: |
-      echo "# Deploy Status" > DEPLOY_STATUS.md
-      echo "Time: $(date -u)" >> DEPLOY_STATUS.md
-      echo "Branch: ${{ github.ref_name }}" >> DEPLOY_STATUS.md
-      echo "Commit: ${{ github.sha }}" >> DEPLOY_STATUS.md
-      echo "Status: [GITH_ACHION]" >> DEPLOY_STATUS.md
-      git config --lobal user.name github-actions
-      git config --lobal user.email github-actions@users.noreply.github.com
-      git add DEPLOY_STATUS.md
-      git diff --cached --quiet | | git commit -m "Logged deploy status"
-      git push
+# DELETED - This workflow was broken and not needed
+# Use the manual deploy.yml instead

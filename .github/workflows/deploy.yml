@@ -1,12 +1,16 @@
 name: Deploy to Cloud Run
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'src/backend/**'
-      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
 
 jobs:
   deploy:

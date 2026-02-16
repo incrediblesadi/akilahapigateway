@@ -1,0 +1,47 @@
+
+
+
+
+
+
+-- ====================================================================================
+-- TABLE 06: WORKFLOWS (Automated Workflows Triggered by Actions/Events)
+-- ====================================================================================
+-- Table: DB01_T06_workflows
+-- Purpose: Define automated workflows with triggers, steps, and orchestration
+-- Entry Numbering: DB01_T06_G01_01_entry_001, DB01_T06_G01_01_entry_002, etc.
+-- Links to: DB01_T04_actions (workflow_id), DB01_T02_capabilities
+-- ====================================================================================
+
+CREATE TABLE DB01_T06_workflows (
+  -- GROUP 01: WORKFLOW IDENTITY
+  DB01_T06_G01_01_workflow_uid TEXT PRIMARY KEY,
+  DB01_T06_G01_02_entry_number INTEGER,
+  DB01_T06_G01_03_name TEXT NOT NULL,                -- 'Social Media Post Pipeline', 'Data Sync Workflow'
+  DB01_T06_G01_04_capability_uid TEXT,               -- FK to DB01_T02_capabilities (what capability does this serve?)
+  DB01_T06_G01_05_workflow_type TEXT,                -- sequential, parallel, conditional, event-driven
+  DB01_T06_G01_06_status TEXT DEFAULT 'active',
+
+  -- GROUP 02: TRIGGERS & INITIATION
+  DB01_T06_G02_01_trigger_type TEXT,                 -- manual, scheduled, event, webhook, action-completion
+  DB01_T06_G02_02_trigger_event TEXT,                -- Which event starts this? (action_completed, data_received, time_scheduled)
+  DB01_T06_G02_03_trigger_conditions JSON,           -- Conditions for trigger: {field: "...", operator: "...", value: "..."}
+  DB01_T06_G02_04_schedule_cron TEXT,                -- Cron expression if scheduled
+
+  -- GROUP 03: EXECUTION STEPS
+  DB01_T06_G03_01_workflow_steps JSON,               -- [{step: 1, action_uid: "...", wait_for_completion: true}, ...]
+  DB01_T06_G03_02_step_dependencies JSON,            -- Dependencies between steps
+  DB01_T06_G03_03_parallel_execution BOOLEAN,        -- Can steps run in parallel?
+  DB01_T06_G03_04_error_handling JSON,               -- {on_error: "rollback", retry_failed_steps: true}
+
+  -- GROUP 04: ORCHESTRATION & SCHEDULING
+  DB01_T06_G04_01_orchestrator TEXT,                 -- temporal, airflow, step-functions, custom
+  DB01_T06_G04_02_max_execution_time INTEGER,        -- Maximum workflow runtime in seconds
+  DB01_T06_G04_03_retry_policy JSON,                 -- {max_retries: 3, backoff: "exponential"}
+  DB01_T06_G04_04_success_criteria JSON,             -- When is workflow successful?
+
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+  FOREIGN KEY (DB01_T06_G01_04_capability_uid) REFERENCES DB01_T02_capabilities(DB01_T02_G01_01_capability_uid) ON DELETE CASCADE
+);
