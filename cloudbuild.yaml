@@ -7,7 +7,7 @@ steps:
     args:
       - 'build'
       - '-t'
-      - 'gcr.io/$PROJECT_ID/github.com/$REPO_FULL_NAME:$SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/akilahapigateway:$SHORT_SHA'
       - '-f'
       - 'Dockerfile'
       - '.'
@@ -17,17 +17,17 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'gcr.io/$PROJECT_ID/github.com/$REPO_FULL_NAME:$SHORT_SHA'
+      - 'gcr.io/$PROJECT_ID/akilahapigateway:$SHORT_SHA'
     id: 'push-image'
 
 # Required for regional builds with service accounts
 options:
   logging: CLOUD_LOGGING_ONLY
-  machineType: 'N1_HIGHCPU_8'
+  machineType: 'E2_HIGHCPU_8'
 
 # Timeout
 timeout: '1200s'
 
 # Images to store
 images:
-  - 'gcr.io/$PROJECT_ID/github.com/$REPO_FULL_NAME:$SHORT_SHA'
+  - 'gcr.io/$PROJECT_ID/akilahapigateway:$SHORT_SHA'
