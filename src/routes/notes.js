@@ -6,6 +6,10 @@ const router = express.Router();
 
 router.post('/notes', async (req, res) => {
   try {
+    if (!db) {
+      return res.status(503).send({ error: 'Firebase is not configured' });
+    }
+
     const now = DateTime.now().setZone('America/New_York');
     const isoTimestamp = now.toISO();
     const safeTimestamp = isoTimestamp.replace(/[:.]/g, '-');  // sanitize for Firebase
@@ -15,7 +19,7 @@ router.post('/notes', async (req, res) => {
 
     const entry = {
       timestamp: isoTimestamp,
-      day: now.weekdayLong, 
+      day: now.weekdayLong,
       date: now.toFormat('dd_MM_yy'),
       time: now.toFormat('hh_mm_a'),
       week_of: now.minus({ days: now.weekday - 1 }).toFormat('yyyy_MM_dd'),

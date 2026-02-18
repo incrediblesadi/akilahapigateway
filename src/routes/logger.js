@@ -6,6 +6,10 @@ const router = express.Router();
 
 router.post('/logger', async (req, res) => {
   try {
+    if (!db) {
+      return res.status(503).send({ error: 'Firebase is not configured' });
+    }
+
     const nowEastern = DateTime.now().setZone('America/New_York').toFormat("yyyy-MM-dd_HHmmss");
     const logPath = `0001currentsession/99serverlogs/${nowEastern}`;
     const result = req.body.result || 'No result provided';
