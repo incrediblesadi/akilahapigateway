@@ -24,7 +24,7 @@ credentials/
 *.bak
 
 # GitHub workflows and auto-generated files (if not production critical)
-.github/workflows/env-sync.yml
+.github/
 scripts/generate-file-contents.js
 
 # Notion-specific SDK or test clients
@@ -35,3 +35,22 @@ clients/githubClient.js
 .DS_Store
 .vscode/
 .idea/
+# Documentation files (not needed in production)
+*.md
+!README.md
+ARCHITECTURE-AND-FEATURES.md
+CHANGELOG.md
+DETAILED-ACTION-PLAN.md
+EXECUTIVE-SUMMARY.md
+PROJECT-ANALYSIS-INVESTOR-BRIEF.md
+README-ENV-TO-SECRETS.md
+remodel-plan.md
+"REPO MAP.md"
+REPO-MAP_DEV.md
+START-HERE.md
+
+# Test and build artifacts
+test/
+bin/
+cloudbuild.yaml
+Dockerfile

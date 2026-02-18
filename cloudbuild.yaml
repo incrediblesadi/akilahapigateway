@@ -20,6 +20,24 @@ steps:
       - 'gcr.io/$PROJECT_ID/akilahapigateway:$SHORT_SHA'
     id: 'push-image'
 
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'akilahapigateway'
+      - '--image=gcr.io/$PROJECT_ID/akilahapigateway:$SHORT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--min-instances=0'
+      - '--max-instances=10'
+    id: 'deploy-cloud-run'
+
 # Required for regional builds with service accounts
 options:
   logging: CLOUD_LOGGING_ONLY
