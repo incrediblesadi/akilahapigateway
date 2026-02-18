@@ -15,7 +15,10 @@
     "firebase-admin": "^11.0.0",
     "luxon": "^3.0.0",
     "@octokit/rest": "^19.0.13",
-    "@octokit/auth-app": "^4.0.13", "libsodium-wrappers": "^0.7.13"
+    "@octokit/auth-app": "^4.0.13",
+    "@notionhq/client": "^2.2.15",
+    "libsodium-wrappers": "^0.7.13",
+    "tweetsodium": "^0.0.5"
   },
   "devDependencies": {
     "jest": "^29.7.0"
