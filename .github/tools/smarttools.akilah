@@ -1,5 +1,166 @@
+#tool temp ideaition
+contract:
+  id: utility.timestamp
+  name: Timestamp Utility Tool
+  version: 1.0.0
+  category: utility.time
+  description: >
+    Generates a canonical UTC timestamp snapshot and optional derived
+    projections including human-readable formats, indexing metadata,
+    and range calculations. Supports multiple output formats and
+    optional execution-scoped state reuse.
 
+  state:
+    enabled: true
+    scope: execution   # execution | workflow | none
+    key: timestamp_snapshot
 
+  input:
+    timezone:
+      type: string
+      default: UTC
+      description: IANA timezone string (e.g., America/New_York)
+
+    output_mode:
+      type: string
+      enum: [canonical, human, indexing, ranges, full]
+      default: full
+      description: Determines which projection layers are included
+
+    output_format:
+      type: string
+      enum: [json, yaml, markdown, sqlite, raw]
+      default: json
+      description: Output format transformation
+
+    interactive:
+      type: boolean
+      default: false
+      description: If true, prompt user for selections via CLI
+
+  output_schema:
+    canonical:
+      utc_iso: string
+      uid: string
+      unix_epoch_ms: number
+
+    human:
+      timezone: string
+      human_readable: string
+      short: string
+      date_only: string
+      time_only: string
+
+    indexing:
+      year: number
+      month: number
+      month_name: string
+      week_number: number
+      quarter: number
+      day_of_week: string
+
+    ranges:
+      start_of_day: string
+      end_of_day: string
+      start_of_week: string
+      end_of_week: string
+
+  runtime:
+    type: bash
+    entry: inline
+
+  script: |
+    #!/usr/bin/env bash
+
+    # ---------- INPUT DEFAULTS ----------
+    TZ_INPUT="${timezone:-UTC}"
+    OUTPUT_MODE="${output_mode:-full}"
+    OUTPUT_FORMAT="${output_format:-json}"
+
+    # ---------- BASE TIMESTAMP ----------
+    BASE_UTC=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    UNIX_EPOCH_MS=$(($(date +%s%N)/1000000))
+    UID=$(date -u +"%Y%m%dT%H%M%S%3NZ")
+
+    # ---------- TIMEZONE PROJECTION ----------
+    LOCAL_DATE=$(TZ=$TZ_INPUT date +"%Y-%m-%d")
+    LOCAL_TIME=$(TZ=$TZ_INPUT date +"%H:%M:%S")
+    HUMAN_READABLE=$(TZ=$TZ_INPUT date +"%A, %B %d, %Y %I:%M %p %Z")
+    SHORT=$(TZ=$TZ_INPUT date +"%m/%d/%Y %I:%M %p")
+
+    # ---------- INDEXING ----------
+    YEAR=$(TZ=$TZ_INPUT date +"%Y")
+    MONTH=$(TZ=$TZ_INPUT date +"%m")
+    MONTH_NAME=$(TZ=$TZ_INPUT date +"%B")
+    WEEK_NUMBER=$(TZ=$TZ_INPUT date +"%V")
+    DAY_OF_WEEK=$(TZ=$TZ_INPUT date +"%A")
+
+    # Quarter calculation
+    MONTH_INT=$((10#$MONTH))
+    QUARTER=$(( (MONTH_INT - 1) / 3 + 1 ))
+
+    # ---------- RANGES ----------
+    START_OF_DAY=$(TZ=$TZ_INPUT date +"%Y-%m-%dT00:00:00")
+    END_OF_DAY=$(TZ=$TZ_INPUT date +"%Y-%m-%dT23:59:59")
+
+    # Start of week (Monday)
+    START_OF_WEEK=$(TZ=$TZ_INPUT date -d "last monday" +"%Y-%m-%dT00:00:00")
+    END_OF_WEEK=$(TZ=$TZ_INPUT date -d "next sunday" +"%Y-%m-%dT23:59:59")
+
+    # ---------- BUILD CANONICAL JSON ----------
+    JSON_OUTPUT=$(cat <<EOF
+    {
+      "canonical": {
+        "utc_iso": "$BASE_UTC",
+        "uid": "$UID",
+        "unix_epoch_ms": $UNIX_EPOCH_MS
+      },
+      "human": {
+        "timezone": "$TZ_INPUT",
+        "human_readable": "$HUMAN_READABLE",
+        "short": "$SHORT",
+        "date_only": "$LOCAL_DATE",
+        "time_only": "$LOCAL_TIME"
+      },
+      "indexing": {
+        "year": $YEAR,
+        "month": $MONTH_INT,
+        "month_name": "$MONTH_NAME",
+        "week_number": $WEEK_NUMBER,
+        "quarter": $QUARTER,
+        "day_of_week": "$DAY_OF_WEEK"
+      },
+      "ranges": {
+        "start_of_day": "$START_OF_DAY",
+        "end_of_day": "$END_OF_DAY",
+        "start_of_week": "$START_OF_WEEK",
+        "end_of_week": "$END_OF_WEEK"
+      }
+    }
+    EOF
+    )
+
+    # ---------- OUTPUT FORMAT HANDLING ----------
+    if [ "$OUTPUT_FORMAT" = "json" ]; then
+      echo "$JSON_OUTPUT"
+
+    elif [ "$OUTPUT_FORMAT" = "yaml" ]; then
+      echo "$JSON_OUTPUT" | yq
+
+    elif [ "$OUTPUT_FORMAT" = "markdown" ]; then
+      echo "| Field | Value |"
+      echo "|-------|-------|"
+      echo "| UTC ISO | $BASE_UTC |"
+      echo "| Human | $HUMAN_READABLE |"
+      echo "| Week | $WEEK_NUMBER |"
+      echo "| Quarter | $QUARTER |"
+
+    elif [ "$OUTPUT_FORMAT" = "sqlite" ]; then
+      echo "INSERT INTO timestamps (utc_iso, uid, epoch_ms) VALUES ('$BASE_UTC', '$UID', $UNIX_EPOCH_MS);"
+
+    else
+      echo "$BASE_UTC"
+    fi
 
 
 
