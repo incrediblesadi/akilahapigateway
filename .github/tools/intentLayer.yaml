@@ -1,0 +1,147 @@
+intent_layer_governance_contract:
+
+  # ==================================================
+  # 1. CONTRACT IDENTITY
+  # ==================================================
+
+  contract_identity:
+    contract_name: "Universal Intent Governance Contract"
+    contract_layer: "Layer_1_Intent_Governance"
+    contract_version: "1.0"
+    description: >
+      Governs intent capture, accumulation, interpretation,
+      clarification, relational indexing, review, and finalization.
+      Does not include planning or execution.
+
+  # ==================================================
+  # 2. CONTRACT REGISTRY
+  # ==================================================
+
+  contract_registry:
+    registered_contract_types:
+      - job
+      - intent_input
+      - interpretation
+      - review
+      - finalization
+
+    id_rules:
+      job_id_format: "JOB_<###>"
+      intent_id_format: "JOB_<###>_INTENT_<###>"
+      review_id_format: "JOB_<###>_REVIEW_<###>"
+
+    integrity_rules:
+      intent_append_only: true
+      interpretation_versioned: true
+      intent_immutable_after_creation: true
+      layer_separation_enforced: true
+
+  # ==================================================
+  # 3. JOB CONTRACT (ROOT CONTAINER)
+  # ==================================================
+
+  job_contract:
+    contract_type: "job"
+    id: "JOB_001"
+    subtype: "container"
+
+    metadata:
+      created_utc: ""
+      created_eastern: ""
+      created_by: ""
+      tags: []
+      domain: ""   # audit | research | design | etc.
+      status: "draft"   # draft | clarifying | clarified | finalized
+
+    intent_registry:
+      total_intents: 0
+      next_intent_sequence: 1
+      registered_intent_ids: []
+
+  # ==================================================
+  # 4. INTENT INPUT CONTRACTS (MULTIPLE)
+  # ==================================================
+
+  intent_input_contracts: []
+
+  # Example structure when populated:
+  #
+  # - contract_type: "intent_input"
+  #   id: "JOB_001_INTENT_01"
+  #   sequence: 1
+  #   subtype: "raw"
+  #
+  #   timestamp_utc: ""
+  #   source: "user"
+  #
+  #   subject: ""
+  #   overview: ""
+  #
+  #   narrative: |
+  #     Full narrative explanation.
+  #
+  #   references:
+  #     files: []
+  #     systems: []
+  #     concepts: []
+  #
+  #   relational_index:
+  #     parent: null
+  #     related: []
+  #     derived_from: []
+  #     supersedes: []
+  #
+  #   clarification_log: []
+  #
+  #   intent_state: "active"   # active | superseded | archived
+
+  # ==================================================
+  # 5. INTERPRETATION CONTRACT
+  # ==================================================
+
+  interpretation_contract:
+    contract_type: "interpretation"
+    id: "JOB_001_INTERPRETATION_01"
+    subtype: "consolidated"
+
+    interpretation_versions: []
+
+  # Example version entry:
+  #
+  # - version: 1
+  #   timestamp_utc: ""
+  #   consolidated_understanding: ""
+  #   assumptions: []
+  #   ambiguities: []
+  #   cross_intent_analysis:
+  #     contradictions: []
+  #     overlaps: []
+  #     dependency_relationships: []
+
+  # ==================================================
+  # 6. REVIEW CONTRACT
+  # ==================================================
+
+  review_contract:
+    contract_type: "review"
+    id: "JOB_001_REVIEW_01"
+    subtype: "governance"
+
+    review_process_description: >
+      Defines the method used to validate interpretation
+      against captured intent inputs.
+
+    review_log: []
+
+  # ==================================================
+  # 7. FINALIZATION CONTRACT
+  # ==================================================
+
+  finalization_contract:
+    contract_type: "finalization"
+    id: "JOB_001_FINALIZATION_01"
+    subtype: "intent_freeze"
+
+    finalized_timestamp_utc: ""
+    finalized_by: ""
+    final_statement: ""
