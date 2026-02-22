@@ -3,24 +3,88 @@ intent_layer_governance_contract:
   # ==================================================
   # 1. CONTRACT IDENTITY
   # ==================================================
+  # [ENHANCED] Added contract_version_history for version control tracking
+  # and generation_metadata for automated timestamp-based tracking.
 
   contract_identity:
     contract_name: "Universal Intent Governance Contract"
     contract_layer: "Layer_1_Intent_Governance"
-    contract_version: "1.0"
+    contract_version: "2.0"
     description: >
       Governs intent capture, accumulation, interpretation,
       clarification, relational indexing, review, and finalization.
       Does not include planning or execution.
 
+    # [NEW] Version control history: tracks every contract revision
+    # with author, timestamp, and a summary of changes made.
+    # Populate changed_by and changed_utc when adopting this contract.
+    contract_version_history:
+      - version: "1.0"
+        changed_by: ""        # Fill with original contract author name or agent ID
+        changed_utc: ""       # Fill with original creation timestamp (ISO-8601)
+        change_summary: "Initial contract definition."
+      - version: "2.0"
+        changed_by: ""        # Fill with the author who applied this enhancement
+        changed_utc: ""       # Fill with the timestamp this version was adopted
+        change_summary: >
+          Added dynamic registry, raw/summarized intent distinction,
+          lifecycle tracking, persona metadata, expanded interpretation
+          tracking, and enhanced review/finalization sections.
+
+    # [NEW] Generation metadata is populated by automated tooling at runtime
+    # (e.g., a CI pipeline or agent run that regenerates this file).
+    # Leave empty when editing manually; tooling will fill these fields.
+    generation_metadata:
+      generated_utc: ""        # ISO-8601 timestamp set at generation time by tooling
+      generated_by: ""         # Tool name or agent identifier (e.g., "ci_pipeline_v1")
+      generation_trigger: ""   # e.g., "manual" | "ci_pipeline" | "agent_run"
+
   # ==================================================
-  # 2. CONTRACT REGISTRY
+  # 2. DYNAMIC REGISTRY
   # ==================================================
+  # [NEW] Tracks upstream/downstream contract dependencies using
+  # hierarchical relationships. Allows automated tooling to resolve
+  # the full dependency graph for any given job or intent.
+
+  dynamic_registry:
+
+    # Upstream contracts are prerequisites that must exist before
+    # this contract can be acted upon (e.g., intake forms, briefs).
+    upstream_contracts: []
+    # Example entry:
+    # - contract_id: "UPSTREAM_001"
+    #   contract_type: "intake_brief"
+    #   dependency_type: "prerequisite"
+    #   description: "Source document that originated this job."
+
+    # Downstream contracts are produced as outputs of this contract
+    # (e.g., planning layer contracts, execution layer contracts).
+    downstream_contracts: []
+    # Example entry:
+    # - contract_id: "DOWNSTREAM_001"
+    #   contract_type: "planning_layer"
+    #   dependency_type: "output"
+    #   description: "Layer 2 planning contract derived from finalized intents."
+
+    # Hierarchical relationships define parent/child contract nesting
+    # beyond the upstream/downstream linear chain.
+    hierarchical_relationships: []
+    # Example entry:
+    # - parent_contract_id: "JOB_001"
+    #   child_contract_ids: ["JOB_001_INTENT_01", "JOB_001_INTENT_02"]
+    #   relationship_type: "contains"
+
+  # ==================================================
+  # 3. CONTRACT REGISTRY
+  # ==================================================
+  # [ENHANCED] Added summarized_intent as a registered contract type
+  # and extended schema_requirements with summarized intent fields.
 
   contract_registry:
     registered_contract_types:
       - job
       - intent_input
+      - summarized_intent    # [NEW] Distinguishes summarized actionable intents
       - interpretation
       - review
       - finalization
@@ -28,6 +92,7 @@ intent_layer_governance_contract:
     id_rules:
       job_id_format: "JOB_<###>"
       intent_id_format: "JOB_<###>_INTENT_<###>"
+      summarized_intent_id_format: "JOB_<###>_SUMMARY_<###>"  # [NEW]
       review_id_format: "JOB_<###>_REVIEW_<###>"
 
     integrity_rules:
@@ -37,11 +102,20 @@ intent_layer_governance_contract:
       layer_separation_enforced: true
 
     lifecycle_rules:
+      # [ENHANCED] Expanded allowed transitions to include new lifecycle stages
       allowed_job_status_transitions:
         draft: ["clarifying"]
         clarifying: ["clarified"]
         clarified: ["finalized"]
         finalized: []
+
+      # [NEW] Tracks which persona types are permitted to advance each transition.
+      # Leave arrays empty to allow any persona to advance the transition (no gate).
+      # Populate with persona_type values (e.g., "human_user") to restrict access.
+      persona_transition_gates:
+        draft_to_clarifying: []      # e.g., ["human_user", "intake_agent"]
+        clarifying_to_clarified: []  # e.g., ["review_agent", "domain_expert"]
+        clarified_to_finalized: []   # e.g., ["governance_agent", "approver"]
 
     intent_supersession_rules:
       requires_reference_to_previous_intent: true
@@ -58,6 +132,7 @@ intent_layer_governance_contract:
       - constraint
       - refinement
       - derived
+      - summarized    # [NEW] Marks an intent as a summarized/actionable form
 
     schema_requirements:
       job_contract_required_fields:
@@ -72,6 +147,14 @@ intent_layer_governance_contract:
         - narrative
         - timestamp_utc
 
+      # [NEW] Required fields for summarized intent contracts
+      summarized_intent_required_fields:
+        - id
+        - sequence
+        - raw_intent_ref
+        - actionable_summary
+        - timestamp_utc
+
       interpretation_required_fields:
         - interpretation_versions
 
@@ -82,8 +165,10 @@ intent_layer_governance_contract:
         - final_statement
 
   # ==================================================
-  # 3. JOB CONTRACT (ROOT CONTAINER)
+  # 4. JOB CONTRACT (ROOT CONTAINER)
   # ==================================================
+  # [ENHANCED] Added lifecycle_history and raw/summarized intent counts
+  # to the job metadata for detailed transition tracking.
 
   job_contract:
     contract_type: "job"
@@ -98,14 +183,28 @@ intent_layer_governance_contract:
       domain: ""   # audit | research | design | etc.
       status: "draft"   # draft | clarifying | clarified | finalized
 
+      # [NEW] Tracks every status transition for audit and governance
+      lifecycle_history: []
+      # Example entry:
+      # - from_status: "draft"
+      #   to_status: "clarifying"
+      #   transitioned_by: ""
+      #   transitioned_utc: ""
+      #   notes: ""
+
     intent_registry:
       total_intents: 0
       next_intent_sequence: 1
       registered_intent_ids: []
+      # [NEW] Separate counters for raw vs summarized intents
+      total_raw_intents: 0
+      total_summarized_intents: 0
 
   # ==================================================
-  # 4. INTENT INPUT CONTRACTS (MULTIPLE)
+  # 5. INTENT INPUT CONTRACTS (MULTIPLE)
   # ==================================================
+  # [ENHANCED] Example entries now include persona_metadata,
+  # intent_classification (raw vs summarized), and summarized_ref.
 
   intent_input_contracts: []
 
@@ -116,6 +215,14 @@ intent_layer_governance_contract:
   #   sequence: 1
   #   subtype: "raw"
   #
+  #   # [NEW] intent_classification distinguishes raw captured intents
+  #   # from summarized actionable intents within the same list.
+  #   intent_classification: "raw"   # raw | summarized
+  #
+  #   # [NEW] For summarized intents only: references the raw source intent
+  #   # so traceability between raw and summarized forms is preserved.
+  #   summarized_ref: null   # e.g., "JOB_001_INTENT_01" when classification=summarized
+  #
   #   timestamp_utc: ""
   #   source: "user"
   #
@@ -124,6 +231,10 @@ intent_layer_governance_contract:
   #
   #   narrative: |
   #     Full narrative explanation.
+  #
+  #   # [NEW] For summarized intents: a concise actionable summary derived
+  #   # from the raw narrative, used downstream for planning/execution layers.
+  #   actionable_summary: ""
   #
   #   references:
   #     files: []
@@ -138,11 +249,22 @@ intent_layer_governance_contract:
   #
   #   clarification_log: []
   #
+  #   # [NEW] persona_metadata captures information about the agent or person
+  #   # who submitted or processed this intent, enabling persona-driven
+  #   # governance and lifecycle gates.
+  #   persona_metadata:
+  #     persona_id: ""           # unique identifier for the persona
+  #     persona_type: ""         # e.g., "human_user" | "intake_agent" | "domain_expert"
+  #     expertise_domain: ""     # e.g., "audit" | "design" | "engineering"
+  #     role_in_lifecycle: ""    # e.g., "submitter" | "clarifier" | "reviewer"
+  #
   #   intent_state: "active"   # active | superseded | archived
 
   # ==================================================
-  # 5. INTERPRETATION CONTRACT
+  # 6. INTERPRETATION CONTRACT
   # ==================================================
+  # [ENHANCED] interpretation_versions now supports multiple perspectives
+  # per version and includes a validation_log for audit purposes.
 
   interpretation_contract:
     contract_type: "interpretation"
@@ -153,6 +275,16 @@ intent_layer_governance_contract:
 
     interpretation_binding_requirement:
       interpreted_intent_ids: []
+
+    # [NEW] Tracks validation events applied to each interpretation version
+    validation_log: []
+    # Example entry:
+    # - validation_id: "VAL_001"
+    #   validated_version: 1
+    #   validated_by: ""
+    #   validated_utc: ""
+    #   outcome: ""   # passed | failed | needs_review
+    #   notes: ""
 
   # Example version entry:
   #
@@ -165,10 +297,22 @@ intent_layer_governance_contract:
   #     contradictions: []
   #     overlaps: []
   #     dependency_relationships: []
+  #
+  #   # [NEW] perspectives allows multiple stakeholder or agent viewpoints
+  #   # to be captured within a single interpretation version, supporting
+  #   # cross-referencing between different analytical angles.
+  #   perspectives:
+  #     - perspective_id: "PERSP_001"
+  #       perspective_owner: ""     # persona_id or role name
+  #       viewpoint: ""             # brief description of the perspective angle
+  #       supporting_intent_ids: [] # raw intent IDs that support this perspective
+  #       cross_references: []      # IDs of related perspectives or interpretations
 
   # ==================================================
-  # 6. REVIEW CONTRACT
+  # 7. REVIEW CONTRACT
   # ==================================================
+  # [ENHANCED] Added review_steps for structured progress tracking and
+  # persona_metadata to record who performed each review action.
 
   review_contract:
     contract_type: "review"
@@ -179,11 +323,37 @@ intent_layer_governance_contract:
       Defines the method used to validate interpretation
       against captured intent inputs.
 
+    # [NEW] review_steps provides a structured checklist of review actions,
+    # enabling progress tracking across multi-step governance reviews.
+    review_steps: []
+    # Example entry:
+    # - step_id: "STEP_001"
+    #   step_name: ""              # e.g., "Verify intent completeness"
+    #   assigned_to: ""            # persona_id or role
+    #   status: "pending"          # pending | in_progress | complete | blocked
+    #   completed_utc: ""
+    #   notes: ""
+
     review_log: []
+    # [ENHANCED] review_log entries now support persona_metadata:
+    # Example entry:
+    # - review_id: "JOB_001_REVIEW_01_LOG_001"
+    #   reviewed_by: ""
+    #   reviewed_utc: ""
+    #   outcome: ""
+    #   notes: ""
+    #   # [NEW] persona_metadata links the reviewer to their governance role
+    #   persona_metadata:
+    #     persona_id: ""
+    #     persona_type: ""         # e.g., "governance_agent" | "domain_expert"
+    #     expertise_domain: ""
+    #     role_in_lifecycle: "reviewer"
 
   # ==================================================
-  # 7. FINALIZATION CONTRACT
+  # 8. FINALIZATION CONTRACT
   # ==================================================
+  # [ENHANCED] Added validation_process to support structured validation
+  # steps before an intent set is formally finalized.
 
   finalization_contract:
     contract_type: "finalization"
@@ -193,6 +363,17 @@ intent_layer_governance_contract:
     finalized_timestamp_utc: ""
     finalized_by: ""
     final_statement: ""
+
+    # [NEW] validation_process records the structured checks that must
+    # pass before the finalization is accepted as complete.
+    validation_process: []
+    # Example entry:
+    # - validation_step_id: "FIN_VAL_001"
+    #   check_name: ""               # e.g., "All intents have active state"
+    #   check_result: ""             # passed | failed | skipped
+    #   checked_by: ""               # persona_id or tool name
+    #   checked_utc: ""
+    #   notes: ""
 
   layer_transition_rules:
     layer_1_exit_requires:
