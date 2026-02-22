@@ -1,4 +1,6 @@
 name: Deploy to Cloud Run
+# Trigger: manual only (workflow_dispatch) to prevent unintentional deployments
+# from pushes to non-code files (*.md, .github/tools/, etc.)
 
 on:
   workflow_dispatch:
