@@ -2,25 +2,21 @@
   "name": "akilah-api-gateway",
   "version": "1.0.0",
   "main": "src/index.js",
-  "bin": {
-    "env-to-secrets": "./bin/env-to-secrets"
-  },
   "scripts": {
-    "start": "node src/index.js",
-    "env-to-secrets": "node src/env-to-github-secrets.js",
-    "test": "jest"
+    "start": "node src/index.js"
   },
   "dependencies": {
+    "@notionhq/client": "^5.6.0",
+    "@octokit/rest": "^22.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "express": "^4.18.2",
+    "express-rate-limit": "^8.2.1",
     "firebase-admin": "^11.0.0",
+    "google-auth-library": "^8.9.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
     "luxon": "^3.0.0",
-    "@octokit/rest": "^19.0.13",
-    "@octokit/auth-app": "^4.0.13",
-    "@notionhq/client": "^2.2.15",
-    "libsodium-wrappers": "^0.7.13",
-    "tweetsodium": "^0.0.5"
-  },
-  "devDependencies": {
-    "jest": "^29.7.0"
+    "tweetsodium": "^0.0.4"
   }
 }

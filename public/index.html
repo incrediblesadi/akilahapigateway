@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akilah Control Plane</title>
+    <style>
+      :root {
+        --bg: #07111b;
+        --panel: rgba(8, 18, 30, 0.88);
+        --panel-strong: rgba(14, 28, 43, 0.96);
+        --line: rgba(113, 159, 191, 0.2);
+        --text: #d7e6f3;
+        --muted: #8ea5b8;
+        --accent: #7af4c3;
+        --accent-2: #6db8ff;
+        --danger: #ff6b7a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(circle at top left, rgba(122, 244, 195, 0.12), transparent 30%),
+          radial-gradient(circle at top right, rgba(109, 184, 255, 0.14), transparent 26%),
+          linear-gradient(180deg, #07111b 0%, #04080d 100%);
+        color: var(--text);
+        font-family: "SF Mono", "IBM Plex Sans", "Segoe UI", sans-serif;
+      }
+
+      body {
+        padding: 18px;
+      }
+
+      .shell {
+        max-width: 1440px;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        background: var(--panel);
+        backdrop-filter: blur(18px);
+        min-height: calc(100vh - 36px);
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--line);
+        background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+        flex-wrap: wrap;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .brand-mark {
+        width: 38px;
+        height: 38px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        border: 1px solid rgba(122, 244, 195, 0.28);
+        color: var(--accent);
+        background: rgba(122, 244, 195, 0.08);
+      }
+
+      .brand-title {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+      }
+
+      .brand-sub {
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .status-pill,
+      .mini-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.03);
+        border-radius: 999px;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.2);
+      }
+
+      .dot[data-state="online"] {
+        background: var(--accent);
+        box-shadow: 0 0 0 6px rgba(122,244,195,0.08);
+      }
+
+      .dot[data-state="offline"] {
+        background: var(--danger);
+        box-shadow: 0 0 0 6px rgba(255,107,122,0.08);
+      }
+
+      .topbar-right {
+        margin-left: auto;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+
+      button {
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 9px 14px;
+        cursor: pointer;
+      }
+
+      button:hover {
+        border-color: rgba(122,244,195,0.3);
+        background: rgba(122,244,195,0.08);
+      }
+
+      .content {
+        padding: 22px;
+      }
+
+      .signin {
+        min-height: 68vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        text-align: center;
+      }
+
+      .signin h1 {
+        margin: 0;
+        font-size: clamp(30px, 5vw, 48px);
+      }
+
+      .signin p {
+        margin: 0;
+        max-width: 720px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .message {
+        min-height: 20px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .panel {
+        grid-column: span 12;
+        border: 1px solid var(--line);
+        background: rgba(8, 18, 30, 0.62);
+        padding: 18px;
+      }
+
+      .panel.half {
+        grid-column: span 6;
+      }
+
+      .panel.third {
+        grid-column: span 4;
+      }
+
+      .label {
+        color: var(--accent);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-bottom: 10px;
+      }
+
+      .title {
+        font-size: 18px;
+        margin-bottom: 14px;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      .card,
+      .list-row {
+        border: 1px solid rgba(113, 159, 191, 0.14);
+        background: rgba(255,255,255,0.03);
+        padding: 12px;
+      }
+
+      .card-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+      }
+
+      .card-meta,
+      .card-detail {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .list-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .list-key {
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-size: 11px;
+      }
+
+      .admin-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .form-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .form-grid input,
+      .form-grid select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      @media (max-width: 980px) {
+        .panel.half,
+        .panel.third {
+          grid-column: span 12;
+        }
+
+        .admin-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <div class="brand-mark">⬡</div>
+          <div>
+            <div class="brand-title">AKILAH</div>
+            <div class="brand-sub">Control Plane</div>
+          </div>
+        </div>
+
+        <div class="status-pill">
+          <span id="gateway-dot" class="dot" data-state="unknown"></span>
+          <span id="gateway-label">gateway booting</span>
+        </div>
+
+        <div class="topbar-right">
+          <div id="user-pill" class="mini-pill hidden">
+            <span id="user-role">guest</span>
+            <span>·</span>
+            <span id="user-email">unknown</span>
+          </div>
+          <button id="signout-btn" class="hidden">Sign out</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <section id="signin-view" class="signin">
+          <div class="mini-pill">Single sign-in</div>
+          <h1>One gateway, dynamic systems.</h1>
+          <p>
+            Sign in once to load your allowed workspace, connectors, sessions, and shared systems from the Akilah gateway.
+          </p>
+          <div id="google-signin"></div>
+          <button id="reload-auth" class="hidden">Reload sign-in</button>
+          <div id="auth-message" class="message">checking auth config…</div>
+        </section>
+
+        <section id="dashboard-view" class="hidden">
+          <div class="grid">
+            <section class="panel third">
+              <div class="label">identity</div>
+              <div class="title">Current user</div>
+              <div id="identity-list" class="list"></div>
+            </section>
+
+            <section class="panel third">
+              <div class="label">session</div>
+              <div class="title">Workspace session</div>
+              <div id="session-list" class="list"></div>
+            </section>
+
+            <section class="panel third">
+              <div class="label">staging</div>
+              <div class="title">Flow</div>
+              <div id="stage-list" class="list"></div>
+            </section>
+
+            <section class="panel half">
+              <div class="label">connectors</div>
+              <div class="title">Accessible systems</div>
+              <div id="connector-cards" class="cards"></div>
+            </section>
+
+            <section class="panel half">
+              <div class="label">services</div>
+              <div class="title">Gateway runtime</div>
+              <div id="service-cards" class="cards"></div>
+            </section>
+
+            <section class="panel">
+              <div class="label">workspace</div>
+              <div class="title">Resolved containers</div>
+              <div id="workspace-cards" class="cards"></div>
+            </section>
+
+            <section id="admin-panel" class="panel hidden">
+              <div class="label">admin</div>
+              <div class="title">User and access control</div>
+              <div class="admin-grid">
+                <div class="form-grid">
+                  <div class="muted">Invite or provision a user</div>
+                  <input id="invite-email" type="email" placeholder="user@example.com">
+                  <select id="invite-role">
+                    <option value="member">member</option>
+                    <option value="admin">admin</option>
+                  </select>
+                  <button id="invite-submit">Create / update user</button>
+                </div>
+                <div class="form-grid">
+                  <div class="muted">Grant connector access</div>
+                  <input id="grant-email" type="email" placeholder="user@example.com">
+                  <select id="grant-connector"></select>
+                  <select id="grant-role">
+                    <option value="viewer">viewer</option>
+                    <option value="editor">editor</option>
+                    <option value="admin">admin</option>
+                  </select>
+                  <button id="grant-submit">Grant access</button>
+                </div>
+              </div>
+              <div id="admin-message" class="message"></div>
+              <div class="label" style="margin-top:18px;">directory</div>
+              <div id="directory-cards" class="cards"></div>
+            </section>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        'use strict';
+
+        var TOKEN_KEY = 'akilah_gateway_token';
+        var state = {
+          authConfig: null,
+          bootstrap: null
+        };
+
+        function token() {
+          return window.localStorage.getItem(TOKEN_KEY) || '';
+        }
+
+        function setToken(value) {
+          if (value) {
+            window.localStorage.setItem(TOKEN_KEY, value);
+          }
+        }
+
+        function clearToken() {
+          window.localStorage.removeItem(TOKEN_KEY);
+        }
+
+        function authFetch(url, options) {
+          var next = options || {};
+          var headers = Object.assign({}, next.headers || {});
+          if (token()) headers.Authorization = 'Bearer ' + token();
+          return fetch(url, Object.assign({}, next, { headers: headers }));
+        }
+
+        function setMessage(target, message) {
+          var node = document.getElementById(target);
+          if (node) node.textContent = message || '';
+        }
+
+        function setGatewayState(stateValue, label) {
+          document.getElementById('gateway-dot').setAttribute('data-state', stateValue);
+          document.getElementById('gateway-label').textContent = label;
+        }
+
+        function showSignIn() {
+          document.getElementById('signin-view').classList.remove('hidden');
+          document.getElementById('dashboard-view').classList.add('hidden');
+          document.getElementById('user-pill').classList.add('hidden');
+          document.getElementById('signout-btn').classList.add('hidden');
+        }
+
+        function showDashboard() {
+          document.getElementById('signin-view').classList.add('hidden');
+          document.getElementById('dashboard-view').classList.remove('hidden');
+          document.getElementById('user-pill').classList.remove('hidden');
+          document.getElementById('signout-btn').classList.remove('hidden');
+        }
+
+        function renderList(target, rows) {
+          document.getElementById(target).innerHTML = rows.map(function (row) {
+            return (
+              '<div class="list-row">' +
+                '<span class="list-key">' + row.key + '</span>' +
+                '<span>' + row.value + '</span>' +
+              '</div>'
+            );
+          }).join('');
+        }
+
+        function renderCards(target, items) {
+          document.getElementById(target).innerHTML = items.map(function (item) {
+            return (
+              '<div class="card">' +
+                '<div class="card-title">' + item.title + '</div>' +
+                '<div class="card-meta">' + (item.meta || '') + '</div>' +
+                '<div class="card-detail">' + (item.detail || '') + '</div>' +
+              '</div>'
+            );
+          }).join('');
+        }
+
+        function loadDirectory() {
+          return authFetch('/admin/users')
+            .then(function (response) {
+              if (!response.ok) throw new Error('directory load failed');
+              return response.json();
+            })
+            .then(function (data) {
+              var cards = [];
+
+              (data.users || []).forEach(function (user) {
+                cards.push({
+                  title: user.email || user.uid,
+                  meta: user.role + ' · ' + user.status,
+                  detail: 'user'
+                });
+              });
+
+              (data.invites || []).forEach(function (invite) {
+                cards.push({
+                  title: invite.email,
+                  meta: invite.role + ' · ' + invite.status,
+                  detail: invite.claimedUid ? ('claimed by ' + invite.claimedUid) : 'invite'
+                });
+              });
+
+              renderCards('directory-cards', cards);
+            })
+            .catch(function (error) {
+              setMessage('admin-message', error.message);
+            });
+        }
+
+        function loadAdminConnectors(connectors) {
+          var select = document.getElementById('grant-connector');
+          select.innerHTML = connectors.map(function (connector) {
+            return '<option value="' + connector.id + '">' + connector.label + '</option>';
+          }).join('');
+        }
+
+        function renderBootstrap(data) {
+          state.bootstrap = data;
+          setGatewayState('online', 'gateway ready');
+          showDashboard();
+
+          document.getElementById('user-role').textContent = data.user.role;
+          document.getElementById('user-email').textContent = data.user.email;
+
+          renderList('identity-list', [
+            { key: 'uid', value: data.user.uid || data.user.sub || 'unknown' },
+            { key: 'role', value: data.user.role || 'member' },
+            { key: 'status', value: data.user.status || 'active' }
+          ]);
+
+          renderList('session-list', [
+            { key: 'session', value: data.session.summary.id || 'unknown' },
+            { key: 'updated', value: data.session.summary.timestamp || 'not built yet' },
+            { key: 'next', value: data.session.summary.nextAction || 'define next action' }
+          ]);
+
+          renderList('stage-list', (data.stageFlow || []).map(function (stage, index) {
+            return { key: '0' + (index + 1), value: stage };
+          }));
+
+          renderCards('connector-cards', (data.connectors || []).map(function (connector) {
+            return {
+              title: connector.label,
+              meta: connector.accessRole + ' · ' + connector.runtimeStatus,
+              detail: connector.provider + ' · ' + connector.connectionMode
+            };
+          }));
+
+          renderCards('service-cards', Object.keys(data.services || {}).map(function (key) {
+            var item = data.services[key];
+            return {
+              title: item.label,
+              meta: item.status || 'unknown',
+              detail: item.detail || item.url || item.provider || ''
+            };
+          }));
+
+          renderCards('workspace-cards', (data.workspace.containers || []).map(function (container) {
+            return {
+              title: container.title,
+              meta: container.id,
+              detail: (container.items || []).map(function (item) {
+                return item.label + ': ' + item.value;
+              }).join(' · ')
+            };
+          }));
+
+          if (data.user.role === 'admin') {
+            document.getElementById('admin-panel').classList.remove('hidden');
+            loadAdminConnectors(data.connectors || []);
+            loadDirectory();
+          } else {
+            document.getElementById('admin-panel').classList.add('hidden');
+          }
+        }
+
+        function loadBootstrap() {
+          return authFetch('/dashboard/bootstrap')
+            .then(function (response) {
+              if (!response.ok) throw new Error('dashboard bootstrap failed (' + response.status + ')');
+              return response.json();
+            })
+            .then(renderBootstrap)
+            .catch(function (error) {
+              clearToken();
+              showSignIn();
+              setMessage('auth-message', error.message);
+            });
+        }
+
+        function handleCredentialResponse(result) {
+          setMessage('auth-message', 'signing in…');
+          fetch('/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ credential: result.credential })
+          })
+            .then(function (response) {
+              if (!response.ok) throw new Error('google sign-in failed (' + response.status + ')');
+              return response.json();
+            })
+            .then(function (data) {
+              setToken(data.token);
+              return loadBootstrap();
+            })
+            .catch(function (error) {
+              clearToken();
+              setMessage('auth-message', error.message);
+            });
+        }
+
+        function loadGoogleScript() {
+          return new Promise(function (resolve, reject) {
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+              resolve();
+              return;
+            }
+
+            var script = document.createElement('script');
+            script.src = 'https://accounts.google.com/gsi/client';
+            script.async = true;
+            script.defer = true;
+            script.onload = resolve;
+            script.onerror = function () {
+              reject(new Error('failed to load Google sign-in'));
+            };
+            document.head.appendChild(script);
+          });
+        }
+
+        function renderGoogleButton() {
+          var clientId = state.authConfig && state.authConfig.googleClientId;
+          if (!clientId) {
+            setMessage('auth-message', 'Google sign-in is not configured');
+            document.getElementById('reload-auth').classList.remove('hidden');
+            return;
+          }
+
+          window.google.accounts.id.initialize({
+            client_id: clientId,
+            callback: handleCredentialResponse
+          });
+
+          window.google.accounts.id.renderButton(
+            document.getElementById('google-signin'),
+            {
+              theme: 'outline',
+              size: 'large',
+              shape: 'pill',
+              text: 'signin_with',
+              width: 280
+            }
+          );
+
+          setMessage('auth-message', 'sign in with Google to load your workspace');
+        }
+
+        function initializeAuth() {
+          setGatewayState('offline', 'checking auth');
+          return fetch('/auth/config')
+            .then(function (response) {
+              if (!response.ok) throw new Error('auth config unavailable');
+              return response.json();
+            })
+            .then(function (data) {
+              state.authConfig = data.auth;
+              setGatewayState('online', 'gateway ready');
+
+              if (token()) {
+                return loadBootstrap();
+              }
+
+              showSignIn();
+              return loadGoogleScript().then(renderGoogleButton);
+            })
+            .catch(function (error) {
+              showSignIn();
+              setGatewayState('offline', 'gateway auth error');
+              setMessage('auth-message', error.message);
+              document.getElementById('reload-auth').classList.remove('hidden');
+            });
+        }
+
+        document.getElementById('reload-auth').addEventListener('click', function () {
+          initializeAuth();
+        });
+
+        document.getElementById('signout-btn').addEventListener('click', function () {
+          clearToken();
+          showSignIn();
+          setMessage('auth-message', 'signed out');
+        });
+
+        document.getElementById('invite-submit').addEventListener('click', function () {
+          authFetch('/admin/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: document.getElementById('invite-email').value,
+              role: document.getElementById('invite-role').value
+            })
+          })
+            .then(function (response) {
+              if (!response.ok) throw new Error('failed to create user');
+              return response.json();
+            })
+            .then(function () {
+              setMessage('admin-message', 'user saved');
+              loadDirectory();
+            })
+            .catch(function (error) {
+              setMessage('admin-message', error.message);
+            });
+        });
+
+        document.getElementById('grant-submit').addEventListener('click', function () {
+          authFetch('/admin/access/grants', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: document.getElementById('grant-email').value,
+              connectorId: document.getElementById('grant-connector').value,
+              role: document.getElementById('grant-role').value
+            })
+          })
+            .then(function (response) {
+              if (!response.ok) throw new Error('failed to grant access');
+              return response.json();
+            })
+            .then(function () {
+              setMessage('admin-message', 'access granted');
+            })
+            .catch(function (error) {
+              setMessage('admin-message', error.message);
+            });
+        });
+
+        initializeAuth();
+      })();
+    </script>
+  </body>
+</html>
