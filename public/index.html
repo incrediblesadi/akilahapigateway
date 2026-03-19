@@ -329,7 +329,7 @@
           <p>
             Sign in once to load your allowed workspace, connectors, sessions, and shared systems from the Akilah gateway.
           </p>
-          <div id="google-signin"></div>
+          <button id="signin-btn">Sign in with Google</button>
           <button id="reload-auth" class="hidden">Reload sign-in</button>
           <div id="auth-message" class="message">checking auth config…</div>
         </section>
@@ -597,71 +597,14 @@
             });
         }
 
-        function handleCredentialResponse(result) {
-          setMessage('auth-message', 'signing in…');
-          fetch('/auth/google', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ credential: result.credential })
-          })
-            .then(function (response) {
-              if (!response.ok) throw new Error('google sign-in failed (' + response.status + ')');
-              return response.json();
-            })
-            .then(function (data) {
-              setToken(data.token);
-              return loadBootstrap();
-            })
-            .catch(function (error) {
-              clearToken();
-              setMessage('auth-message', error.message);
-            });
-        }
-
-        function loadGoogleScript() {
-          return new Promise(function (resolve, reject) {
-            if (window.google && window.google.accounts && window.google.accounts.id) {
-              resolve();
-              return;
-            }
-
-            var script = document.createElement('script');
-            script.src = 'https://accounts.google.com/gsi/client';
-            script.async = true;
-            script.defer = true;
-            script.onload = resolve;
-            script.onerror = function () {
-              reject(new Error('failed to load Google sign-in'));
-            };
-            document.head.appendChild(script);
-          });
-        }
-
-        function renderGoogleButton() {
-          var clientId = state.authConfig && state.authConfig.googleClientId;
-          if (!clientId) {
+        function startGoogleSignIn() {
+          if (!state.authConfig || !state.authConfig.signInPath) {
             setMessage('auth-message', 'Google sign-in is not configured');
-            document.getElementById('reload-auth').classList.remove('hidden');
             return;
           }
 
-          window.google.accounts.id.initialize({
-            client_id: clientId,
-            callback: handleCredentialResponse
-          });
-
-          window.google.accounts.id.renderButton(
-            document.getElementById('google-signin'),
-            {
-              theme: 'outline',
-              size: 'large',
-              shape: 'pill',
-              text: 'signin_with',
-              width: 280
-            }
-          );
-
-          setMessage('auth-message', 'sign in with Google to load your workspace');
+          setMessage('auth-message', 'redirecting to Google…');
+          window.location.assign(state.authConfig.signInPath + '?next=' + encodeURIComponent('/'));
         }
 
         function initializeAuth() {
@@ -680,7 +623,11 @@
               }
 
               showSignIn();
-              return loadGoogleScript().then(renderGoogleButton);
+              if (!data.auth.googleConfigured || !data.auth.googleClientSecretConfigured) {
+                throw new Error('Google sign-in is not configured');
+              }
+              setMessage('auth-message', 'sign in with Google to load your workspace');
+              return null;
             })
             .catch(function (error) {
               showSignIn();
@@ -692,6 +639,10 @@
 
         document.getElementById('reload-auth').addEventListener('click', function () {
           initializeAuth();
+        });
+
+        document.getElementById('signin-btn').addEventListener('click', function () {
+          startGoogleSignIn();
         });
 
         document.getElementById('signout-btn').addEventListener('click', function () {

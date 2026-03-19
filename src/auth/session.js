@@ -3,11 +3,17 @@ const { OAuth2Client } = require('google-auth-library');
 const { readEnv } = require('../sdk/core/env');
 
 const DEFAULT_TTL_SECONDS = 60 * 60 * 24 * 7;
+const DEFAULT_OAUTH_STATE_TTL_SECONDS = 60 * 10;
+const GOOGLE_SCOPES = ['openid', 'email', 'profile'];
 
 let googleClient = null;
 
 function getGoogleClientId() {
   return readEnv('GOOGLE_CLIENT_ID', '');
+}
+
+function getGoogleClientSecret() {
+  return readEnv('GOOGLE_CLIENT_SECRET', '');
 }
 
 function getSessionSecret() {
@@ -30,10 +36,83 @@ function getGoogleClient() {
   return googleClient;
 }
 
+function getGatewayPublicUrl(req) {
+  return readEnv('GATEWAY_PUBLIC_URL', '')
+    || `${req.protocol}://${req.get('host')}`;
+}
+
+function getGoogleRedirectUri(req) {
+  return readEnv('GOOGLE_REDIRECT_URI', '')
+    || `${getGatewayPublicUrl(req)}/auth/google/callback`;
+}
+
+function getGoogleOAuthClient(req) {
+  const clientId = getGoogleClientId();
+  const clientSecret = getGoogleClientSecret();
+  const redirectUri = getGoogleRedirectUri(req);
+
+  if (!clientId) {
+    throw new Error('GOOGLE_CLIENT_ID is not configured');
+  }
+
+  if (!clientSecret) {
+    throw new Error('GOOGLE_CLIENT_SECRET is not configured');
+  }
+
+  return new OAuth2Client(clientId, clientSecret, redirectUri);
+}
+
+function sanitizeNextPath(value) {
+  const fallback = '/';
+  if (typeof value !== 'string' || !value.startsWith('/')) {
+    return fallback;
+  }
+
+  if (value.startsWith('//') || value.startsWith('/auth/')) {
+    return fallback;
+  }
+
+  return value;
+}
+
+function signOAuthState(next = '/') {
+  const secret = getSessionSecret();
+  if (!secret) {
+    throw new Error('No session signing secret is configured');
+  }
+
+  return jwt.sign(
+    {
+      next: sanitizeNextPath(next)
+    },
+    secret,
+    {
+      algorithm: 'HS256',
+      issuer: 'akilahapigateway',
+      audience: 'akilah-oauth-state',
+      expiresIn: DEFAULT_OAUTH_STATE_TTL_SECONDS
+    }
+  );
+}
+
+function verifyOAuthState(token) {
+  const secret = getSessionSecret();
+  if (!secret) {
+    throw new Error('No session signing secret is configured');
+  }
+
+  return jwt.verify(token, secret, {
+    algorithms: ['HS256'],
+    issuer: 'akilahapigateway',
+    audience: 'akilah-oauth-state'
+  });
+}
+
 function getAuthConfig() {
   return {
     googleClientId: getGoogleClientId(),
     googleConfigured: Boolean(getGoogleClientId()),
+    googleClientSecretConfigured: Boolean(getGoogleClientSecret()),
     sessionConfigured: Boolean(getSessionSecret()),
     ttlSeconds: getSessionTtlSeconds()
   };
@@ -65,6 +144,61 @@ async function verifyGoogleCredential(credential) {
     name: payload.name || payload.email,
     picture: payload.picture || '',
     emailVerified: Boolean(payload.email_verified)
+  };
+}
+
+function createGoogleAuthUrl(req, options = {}) {
+  const next = sanitizeNextPath(options.next || '/');
+  const state = signOAuthState(next);
+
+  return getGoogleOAuthClient(req).generateAuthUrl({
+    access_type: 'offline',
+    prompt: 'consent',
+    include_granted_scopes: true,
+    scope: GOOGLE_SCOPES,
+    state
+  });
+}
+
+async function exchangeGoogleCode(req, code) {
+  if (!code) {
+    throw new Error('Google authorization code is required');
+  }
+
+  const oauthClient = getGoogleOAuthClient(req);
+  const { tokens } = await oauthClient.getToken(code);
+  oauthClient.setCredentials(tokens);
+
+  let payload = null;
+
+  if (tokens.id_token) {
+    const ticket = await oauthClient.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: getGoogleClientId()
+    });
+    payload = ticket.getPayload();
+  }
+
+  if (!payload?.sub || !payload?.email) {
+    const response = await oauthClient.request({
+      url: 'https://openidconnect.googleapis.com/v1/userinfo'
+    });
+    payload = response.data || null;
+  }
+
+  if (!payload?.sub || !payload?.email) {
+    throw new Error('Google profile is missing required claims');
+  }
+
+  return {
+    tokens,
+    profile: {
+      sub: payload.sub,
+      email: payload.email,
+      name: payload.name || payload.email,
+      picture: payload.picture || '',
+      emailVerified: Boolean(payload.email_verified)
+    }
   };
 }
 
@@ -136,10 +270,17 @@ function requireAuth(req, res, next) {
 }
 
 module.exports = {
+  createGoogleAuthUrl,
+  exchangeGoogleCode,
   extractBearerToken,
   getAuthConfig,
+  getGatewayPublicUrl,
+  getGoogleRedirectUri,
   requireAuth,
+  sanitizeNextPath,
   signGatewayToken,
+  signOAuthState,
+  verifyOAuthState,
   verifyGatewayToken,
   verifyGoogleCredential
 };

@@ -1,5 +1,5 @@
-# Use official Node.js image
-FROM node:18-slim
+# Use Node 22 to match @octokit/rest runtime and local development
+FROM node:22-slim
 
 # Create app directory
 WORKDIR /app
