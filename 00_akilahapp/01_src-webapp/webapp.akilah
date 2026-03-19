@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akilah Workspace</title>
+    <!-- styles injected by app.akilah -->
+  </head>
+  <body>
+    <div id="ak-animation-container" aria-hidden="true">
+      <span class="ak-orb ak-orb-a"></span>
+      <span class="ak-orb ak-orb-b"></span>
+      <span class="ak-grid"></span>
+    </div>
+
+    <main id="ak-main" data-status="booting">
+      <header id="ak-header">
+        <div id="ak-logo-wrap">
+          <span id="ak-logo-mark">⬡</span>
+          <div>
+            <div id="ak-logo">AKILAH</div>
+            <div id="ak-subtitle">main workspace shell</div>
+          </div>
+        </div>
+
+        <nav id="ak-nav">
+          <button class="ak-nav-btn" data-view="home">workspace</button>
+          <button class="ak-nav-btn" data-view="services">services</button>
+        </nav>
+
+        <div id="ak-header-right">
+          <div id="ak-gateway-pill">
+            <span id="ak-hub-dot" class="ak-dot" data-state="unknown"></span>
+            <span id="ak-gateway-label">gateway</span>
+          </div>
+          <button id="ak-config-btn" title="gateway status">status</button>
+        </div>
+      </header>
+
+      <section id="ak-shell">
+        <div id="ak-page-slot"></div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        'use strict';
+
+        var activeView = 'home';
+        var viewSources = {
+          home: '/common/workspace.akilah',
+          services: '/common/workspace.akilah'
+        };
+
+        function executeEmbeddedScripts(container) {
+          container.querySelectorAll('script').forEach(function (original) {
+            var next = document.createElement('script');
+            next.textContent = original.textContent;
+            document.body.appendChild(next);
+            original.remove();
+          });
+        }
+
+        function setGatewayState(state, label) {
+          var dot = document.getElementById('ak-hub-dot');
+          var text = document.getElementById('ak-gateway-label');
+          if (dot) dot.setAttribute('data-state', state);
+          if (text && label) text.textContent = label;
+        }
+
+        function refreshGatewayStatus() {
+          fetch('/api/health')
+            .then(function (response) {
+              if (!response.ok) throw new Error(String(response.status));
+              return response.json();
+            })
+            .then(function () {
+              setGatewayState('online', 'gateway online');
+            })
+            .catch(function () {
+              setGatewayState('offline', 'gateway offline');
+            });
+        }
+
+        function setActiveNav(view) {
+          document.querySelectorAll('.ak-nav-btn').forEach(function (button) {
+            button.classList.toggle('ak-nav-active', button.getAttribute('data-view') === view);
+          });
+        }
+
+        function loadView(view) {
+          var slot = document.getElementById('ak-page-slot');
+          var source = viewSources[view] || viewSources.home;
+          activeView = view;
+          setActiveNav(view);
+          document.getElementById('ak-main').setAttribute('data-status', 'loading');
+          slot.innerHTML = '<div class="ak-loading">loading workspace…</div>';
+
+          fetch(source)
+            .then(function (response) {
+              if (!response.ok) throw new Error(String(response.status));
+              return response.text();
+            })
+            .then(function (html) {
+              slot.innerHTML = html;
+              document.body.setAttribute('data-view', activeView);
+              executeEmbeddedScripts(slot);
+              document.getElementById('ak-main').setAttribute('data-status', 'ready');
+            })
+            .catch(function (error) {
+              slot.innerHTML = '<div class="ak-loading ak-error">could not load workspace (' + error.message + ')</div>';
+              document.getElementById('ak-main').setAttribute('data-status', 'error');
+            });
+        }
+
+        document.querySelectorAll('.ak-nav-btn').forEach(function (button) {
+          button.addEventListener('click', function () {
+            loadView(button.getAttribute('data-view'));
+          });
+        });
+
+        document.getElementById('ak-config-btn').addEventListener('click', function () {
+          refreshGatewayStatus();
+        });
+
+        loadView('home');
+        refreshGatewayStatus();
+        window.setInterval(refreshGatewayStatus, 30000);
+      })();
+    </script>
+
+    <style>
+      :root {
+        --ak-bg: #07111b;
+        --ak-panel: rgba(8, 18, 30, 0.88);
+        --ak-panel-strong: rgba(14, 28, 43, 0.96);
+        --ak-line: rgba(113, 159, 191, 0.22);
+        --ak-text: #d7e6f3;
+        --ak-text-muted: #8ea5b8;
+        --ak-accent: #7af4c3;
+        --ak-accent-2: #6db8ff;
+        --ak-danger: #ff6b7a;
+        --ak-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top left, rgba(122, 244, 195, 0.12), transparent 32%),
+          radial-gradient(circle at top right, rgba(109, 184, 255, 0.14), transparent 28%),
+          linear-gradient(180deg, #07111b 0%, #04080d 100%);
+        color: var(--ak-text);
+        font-family: "SF Mono", "IBM Plex Sans", "Segoe UI", sans-serif;
+      }
+
+      #ak-animation-container {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .ak-orb {
+        position: absolute;
+        border-radius: 999px;
+        filter: blur(32px);
+        opacity: 0.55;
+        animation: ak-float 18s ease-in-out infinite;
+      }
+
+      .ak-orb-a {
+        top: 8%;
+        left: 10%;
+        width: 240px;
+        height: 240px;
+        background: rgba(122, 244, 195, 0.18);
+      }
+
+      .ak-orb-b {
+        right: 12%;
+        bottom: 10%;
+        width: 280px;
+        height: 280px;
+        background: rgba(109, 184, 255, 0.16);
+        animation-delay: -7s;
+      }
+
+      .ak-grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 70%);
+      }
+
+      #ak-main {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: min(1400px, calc(100vw - 32px));
+        height: calc(100vh - 32px);
+        margin: 16px auto;
+        border: 1px solid var(--ak-line);
+        background: var(--ak-panel);
+        backdrop-filter: blur(20px);
+        box-shadow: var(--ak-shadow);
+      }
+
+      #ak-header {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        min-height: 68px;
+        padding: 0 22px;
+        border-bottom: 1px solid var(--ak-line);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent);
+      }
+
+      #ak-logo-wrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      #ak-logo-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        border: 1px solid rgba(122, 244, 195, 0.3);
+        border-radius: 10px;
+        color: var(--ak-accent);
+        background: rgba(122, 244, 195, 0.08);
+      }
+
+      #ak-logo {
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: 0.22em;
+      }
+
+      #ak-subtitle {
+        font-size: 10px;
+        color: var(--ak-text-muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      #ak-nav {
+        display: flex;
+        gap: 10px;
+      }
+
+      .ak-nav-btn,
+      #ak-config-btn {
+        border: 1px solid var(--ak-line);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--ak-text-muted);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font: inherit;
+        font-size: 12px;
+        text-transform: lowercase;
+        cursor: pointer;
+      }
+
+      .ak-nav-btn:hover,
+      #ak-config-btn:hover,
+      .ak-nav-btn.ak-nav-active {
+        color: var(--ak-text);
+        border-color: rgba(122, 244, 195, 0.34);
+        background: rgba(122, 244, 195, 0.08);
+      }
+
+      #ak-header-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #ak-gateway-pill {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--ak-line);
+        background: rgba(255, 255, 255, 0.03);
+        font-size: 11px;
+        color: var(--ak-text-muted);
+      }
+
+      .ak-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .ak-dot[data-state="online"] {
+        background: var(--ak-accent);
+        box-shadow: 0 0 0 6px rgba(122, 244, 195, 0.1);
+      }
+
+      .ak-dot[data-state="offline"] {
+        background: var(--ak-danger);
+        box-shadow: 0 0 0 6px rgba(255, 107, 122, 0.08);
+      }
+
+      #ak-shell,
+      #ak-page-slot {
+        min-height: 0;
+        flex: 1;
+        display: flex;
+      }
+
+      #ak-page-slot {
+        overflow: hidden;
+      }
+
+      .ak-loading {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--ak-text-muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 11px;
+      }
+
+      .ak-error {
+        color: var(--ak-danger);
+      }
+
+      @keyframes ak-float {
+        0%, 100% { transform: translate3d(0, 0, 0); }
+        50% { transform: translate3d(0, -18px, 0); }
+      }
+
+      @media (max-width: 900px) {
+        #ak-main {
+          width: calc(100vw - 18px);
+          height: calc(100vh - 18px);
+          margin: 9px auto;
+        }
+
+        #ak-header {
+          padding: 14px;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+
+        #ak-header-right {
+          width: 100%;
+          margin-left: 0;
+          justify-content: space-between;
+        }
+      }
+    </style>
+  </body>
+</html>

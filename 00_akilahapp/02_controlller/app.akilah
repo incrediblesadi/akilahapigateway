@@ -1,0 +1,699 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// app.akilah — The Single Server
+// Connects everything to webapp.akilah through one entry point.
+// Config lives in gateway.akilah. Everything else flows through here.
+// ─────────────────────────────────────────────────────────────────────────────
+
+'use strict';
+
+const express  = require('express');
+const cors     = require('cors');
+const fs       = require('fs');
+const path     = require('path');
+const sqlite3  = require('sqlite3').verbose();
+const axios    = require('axios');
+
+const app  = express();
+const PORT = process.env.PORT || 3000;
+const DEFAULT_GATEWAY_URL = process.env.API_GATEWAY_URL || 'https://akilahapigateway-7677n7fr6q-uc.a.run.app';
+
+// ── Paths — controller files use __dirname, webapp files are hardcoded ────────
+const CONTROLLER_DIR =__dirname; // .akilah/00_akilahapp/controlller/
+
+const PATHS = {
+  root:              path.resolve(__dirname, '../01_src-webapp'),
+  webapp:            path.resolve(__dirname, '../01_src-webapp/webapp.akilah'),
+  common:            path.resolve(__dirname, '../01_src-webapp/common'),
+  appfeatures:       path.resolve(__dirname, '../01_src-webapp/appfeatures'),
+  gateway:           path.join(CONTROLLER_DIR, 'gateway.akilah'),
+  client_akilah:     path.join(CONTROLLER_DIR, 'client.akilah'),
+  akilah_servers_db: path.join(CONTROLLER_DIR, 'akilah_servers.db'),
+  memory_db:         path.resolve(__dirname, '../03_db/memory.db'),
+  desktop:           path.resolve(__dirname, '../../..'),
+  client_url:        process.env.CLIENT_URL || 'http://localhost:8080',
+};
+
+app.use(cors());
+app.use(express.json({ limit: '10mb' }));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROOT — serves webapp.akilah to the browser
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  let html = fs.readFileSync(PATHS.webapp, 'utf8');
+  html = html.replace(
+    '<!-- styles injected by app.akilah -->',
+    '<link rel="stylesheet" href="/common/akilah-master.css">'
+  );
+  res.send(html);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMON — serves design_system.akilah, template.akilah, etc.
+// GET /common/design_system.akilah
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/common/:file', (req, res) => {
+  const file = path.basename(req.params.file); // no path traversal
+  const full = path.join(PATHS.common, file);
+  if (!fs.existsSync(full)) return res.status(404).json({ error: 'not found', file });
+  res.sendFile(full);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPFEATURES — serves gateway.akilah, staging.akilah, etc.
+// GET /appfeatures/gateway.akilah
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/appfeatures/:file', (req, res) => {
+  const file = path.basename(req.params.file);
+  const full = path.join(PATHS.appfeatures, file);
+  if (!fs.existsSync(full)) return res.status(404).json({ error: 'not found', file });
+  res.sendFile(full);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPFEATURES LIST — list all files available to load in webapp
+// GET /appfeatures  (no file = list all)
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/appfeatures', (req, res) => {
+  if (!fs.existsSync(PATHS.appfeatures)) return res.status(404).json({ error: 'appfeatures folder not found' });
+  const entries = fs.readdirSync(PATHS.appfeatures, { withFileTypes: true })
+    .filter(e => e.isFile())
+    .map(e => ({
+      name: e.name,
+      url: `http://localhost:${PORT}/appfeatures/${e.name}`,
+      ext: path.extname(e.name),
+      size: fs.statSync(path.join(PATHS.appfeatures, e.name)).size
+    }));
+  res.json({ ok: true, count: entries.length, files: entries });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GATEWAY CONFIG — returns parsed gateway.akilah as JSON
+// GET /gateway
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/gateway', (req, res) => {
+  try {
+    const raw = fs.readFileSync(PATHS.gateway, 'utf8');
+    res.json({ ok: true, raw, path: PATHS.gateway });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FILE — read any file from Desktop
+// GET /file?path=.akilah/03_intelligencedata/memory.db
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/file', (req, res) => {
+  const rel  = req.query.path;
+  if (!rel) return res.status(400).json({ error: 'path required' });
+  const full = rel.startsWith('/') ? rel : path.join(PATHS.desktop, rel);
+  if (!full.startsWith(PATHS.desktop)) return res.status(403).json({ error: 'outside Desktop' });
+  if (!fs.existsSync(full)) return res.status(404).json({ error: 'not found' });
+  const stat = fs.statSync(full);
+  res.json({
+    ok: true,
+    path: full,
+    size: stat.size,
+    modified: stat.mtime,
+    content: stat.size < 500000 ? fs.readFileSync(full, 'utf8') : '[file too large — use /db]'
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FOLDER — list any folder on Desktop
+// GET /folder?path=.akilah/00_akilahapp
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/folder', (req, res) => {
+  const rel  = req.query.path;
+  if (!rel) return res.status(400).json({ error: 'path required' });
+  const full = rel.startsWith('/') ? rel : path.join(PATHS.desktop, rel);
+  if (!full.startsWith(PATHS.desktop)) return res.status(403).json({ error: 'outside Desktop' });
+  if (!fs.existsSync(full)) return res.status(404).json({ error: 'not found' });
+  const entries = fs.readdirSync(full, { withFileTypes: true }).map(e => ({
+    name: e.name,
+    type: e.isDirectory() ? 'folder' : 'file',
+    path: path.join(full, e.name)
+  }));
+  res.json({ ok: true, path: full, count: entries.length, entries });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DB — read any SQLite table from Desktop
+// GET /db?path=.akilah/03_intelligencedata/memory.db&table=delta_0x11...
+// GET /db?path=...  (no table = list all tables)
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/db', (req, res) => {
+  const rel   = req.query.path;
+  const table = req.query.table;
+  if (!rel) return res.status(400).json({ error: 'path required' });
+  const full = rel.startsWith('/') ? rel : path.join(PATHS.desktop, rel);
+  if (!full.startsWith(PATHS.desktop)) return res.status(403).json({ error: 'outside Desktop' });
+  if (!fs.existsSync(full)) return res.status(404).json({ error: 'db not found', path: full });
+
+  const db = new sqlite3.Database(full, sqlite3.OPEN_READONLY, err => {
+    if (err) return res.status(500).json({ error: err.message });
+  });
+  db.on('error', err => res.status(500).json({ error: err.message }));
+
+  if (!table) {
+    // List all tables
+    db.all("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name", [], (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true, db: full, tables: rows.map(r => r.name) });
+    });
+  } else {
+    // Return rows from table
+    const limit = parseInt(req.query.limit) || 100;
+    db.all(`SELECT * FROM "${table}" LIMIT ?`, [limit], (err, rows) => {
+      if (err) {
+        db.close();
+        return res.status(500).json({ error: err.message });
+      }
+      db.all(`PRAGMA table_info("${table}")`, [], (err2, cols) => {
+        db.close();
+        res.json({
+          ok: true,
+          db: full,
+          table,
+          columns: cols ? cols.map(c => c.name) : [],
+          count: rows.length,
+          rows
+        });
+      });
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OUT — forward any request to client.akilah
+// POST /out  { endpoint: '/', body: {...} }
+// ─────────────────────────────────────────────────────────────────────────────
+app.post('/out', async (req, res) => {
+  const { endpoint = '/', body = {} } = req.body;
+  const url = `${PATHS.client_url}${endpoint}`;
+  try {
+    const response = await axios.post(url, body, { timeout: 10000 });
+    res.json({ ok: true, forwarded_to: url, response: response.data });
+  } catch (e) {
+    res.status(502).json({ ok: false, error: e.message, target: url });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATUS — what this server is, what it connects to
+// GET /status
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/status', (req, res) => {
+  res.json({
+    ok: true,
+    server: 'app.akilah',
+    port: PORT,
+    started: new Date().toISOString(),
+    connects_to: {
+      webapp:      PATHS.webapp,
+      common:      PATHS.common,
+      appfeatures: PATHS.appfeatures,
+      gateway:     PATHS.gateway,
+      client:      PATHS.client_url,
+      memory_db:   PATHS.memory_db,
+      desktop:     PATHS.desktop
+    },
+    endpoints: [
+      'GET  /             → webapp.akilah',
+      'GET  /common/:file → common tools',
+      'GET  /appfeatures/:file → gateway, staging, etc.',
+      'GET  /gateway      → gateway.akilah config',
+      'GET  /file?path=   → read any Desktop file',
+      'GET  /folder?path= → list any Desktop folder',
+      'GET  /db?path=&table= → read any SQLite table',
+      'POST /out          → forward to client.akilah',
+      'GET  /deployments  → active deployments from akilah_servers.db',
+      'GET  /config       → active configurations from akilah_servers.db',
+      'GET  /status       → this'
+    ]
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CAPABILITIES — list everything this server exposes
+// GET /capabilities
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/capabilities', (req, res) => {
+  const raw = fs.existsSync(PATHS.gateway)
+    ? fs.readFileSync(PATHS.gateway, 'utf8')
+    : null;
+  res.json({
+    ok: true,
+    server: 'app.akilah',
+    controller_dir: CONTROLLER_DIR,
+    files: {
+      gateway:    PATHS.gateway,
+      client:     PATHS.client_akilah,
+      servers_db: PATHS.akilah_servers_db,
+      webapp:     PATHS.webapp,
+    },
+    gateway_loaded: !!raw,
+    gateway_size:   raw ? raw.length : 0,
+    endpoints: [
+      'GET  /             → webapp.akilah (browser)',
+      'GET  /capabilities → this list',
+      'GET  /status       → server health',
+      'GET  /gateway      → gateway.akilah config',
+      'GET  /common/:file → common tools (design_system, template)',
+      'GET  /appfeatures/:file → features (staging, etc.)',
+      'GET  /file?path=   → read any Desktop file',
+      'GET  /folder?path= → list any Desktop folder',
+      'GET  /db?path=&table= → read any SQLite table',
+      'GET  /servers      → akilah_servers.db table list',
+      'POST /out          → forward to client.akilah',
+      'GET  /deployments  → active deployments (delta_0x00_deployment_01)',
+      'GET  /config       → active configurations (delta_0x00_deployment_02)',
+    ]
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SERVERS DB — list tables + query from akilah_servers.db
+// GET /servers              → list all tables
+// GET /servers?table=...    → query a table
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/servers', (req, res) => {
+  const table = req.query.table;
+  const db = new sqlite3.Database(PATHS.akilah_servers_db, sqlite3.OPEN_READONLY, err => {
+    if (err) return res.status(500).json({ error: err.message });
+  });
+  db.on('error', err => res.status(500).json({ error: err.message }));
+  if (!table) {
+    db.all("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name", [], (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true, db: PATHS.akilah_servers_db, tables: rows.map(r => r.name) });
+    });
+  } else {
+    const limit = parseInt(req.query.limit) || 100;
+    db.all(`SELECT * FROM "${table}" LIMIT ?`, [limit], (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true, table, count: rows.length, rows });
+    });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DEPLOYMENTS — read active deployments from akilah_servers.db
+// GET /deployments              → all active deployments + which one is active
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/deployments', (req, res) => {
+  const db = new sqlite3.Database(PATHS.akilah_servers_db, sqlite3.OPEN_READONLY, err => {
+    if (err) return res.status(500).json({ error: err.message });
+  });
+  db.on('error', err => res.status(500).json({ error: err.message }));
+  db.all(
+    `SELECT * FROM "delta_0x00_deployment_01_active_deployments" WHERE CG01_02_entry_number > 0 ORDER BY CG01_02_entry_number`,
+    [],
+    (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ error: err.message });
+      const active = rows.find(r => r.CG04_01_status === 'active') || null;
+      // parse capabilities JSON string into array
+      const deployments = rows.map(r => ({
+        ...r,
+        CG02_03_capabilities: (() => { try { return JSON.parse(r.CG02_03_capabilities); } catch { return r.CG02_03_capabilities; } })()
+      }));
+      res.json({ ok: true, deployments, active: active ? { ...active, CG02_03_capabilities: (() => { try { return JSON.parse(active.CG02_03_capabilities); } catch { return active.CG02_03_capabilities; } })() } : null });
+    }
+  );
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONFIG — read active configurations from akilah_servers.db
+// GET /config                   → all active configs (webapp, server, system)
+// GET /config?name=config_webapp_akilah_v1  → one specific config
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/config', (req, res) => {
+  const name = req.query.name;
+  const db = new sqlite3.Database(PATHS.akilah_servers_db, sqlite3.OPEN_READONLY, err => {
+    if (err) return res.status(500).json({ error: err.message });
+  });
+  db.on('error', err => res.status(500).json({ error: err.message }));
+  const query = name
+    ? `SELECT * FROM "delta_0x00_deployment_02_active_configurations" WHERE CG01_01_entryUID = ? AND CG01_02_entry_number > 0`
+    : `SELECT * FROM "delta_0x00_deployment_02_active_configurations" WHERE CG01_02_entry_number > 0 ORDER BY CG01_02_entry_number`;
+  const params = name ? [name] : [];
+  db.all(query, params, (err, rows) => {
+    db.close();
+    if (err) return res.status(500).json({ error: err.message });
+    const configs = {};
+    rows.forEach(r => {
+      configs[r.CG01_01_entryUID] = {
+        ...r,
+        CG02_03_config_values: (() => { try { return JSON.parse(r.CG02_03_config_values); } catch { return r.CG02_03_config_values; } })()
+      };
+    });
+    res.json({ ok: true, configs, count: rows.length });
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BACKEND — active upstream backend state + switch/proxy
+//
+//   webapp.akilah  →  app.akilah (here)  →  _backend.url
+//
+//   GET  /backend        → return current backend
+//   POST /backend        → switch backend  { id, label, url }
+//   GET  /backend/ping   → health-check current backend
+//   POST /proxy          → forward a call through current backend  { endpoint, method, payload }
+// ─────────────────────────────────────────────────────────────────────────────// SERVICES — visibility into all connected services
+//
+//   GET /services/status  → probe all services, return structured status map
+// ─────────────────────────────────────────────────────────────────────────────
+
+const { execFile, spawn } = require('child_process');
+function gcloud(args) {
+  return new Promise(resolve => {
+    execFile('gcloud', args, { timeout: 10000 }, (err, stdout) => {
+      try { resolve({ ok: !err, data: JSON.parse(stdout) }); }
+      catch { resolve({ ok: !err, data: stdout?.trim() || null, error: err?.message }); }
+    });
+  });
+}
+
+async function probeEndpoint(url, label) {
+  const t0 = Date.now();
+  try {
+    await axios.get(url, { timeout: 8000 });
+    return { label, status: 'online', latency: Date.now() - t0, url };
+  } catch (e) {
+    return { label, status: 'offline', latency: null, url, error: e.message };
+  }
+}
+
+app.get('/services/status', async (req, res) => {
+  const base = _backend.url.replace(/\/$/, '');
+  const [
+    cloudRun, connectors,
+    linkedin, google, firebase,
+    builds
+  ] = await Promise.allSettled([
+    probeEndpoint(base + '/health',             'Cloud Run Gateway'),
+    probeEndpoint(base + '/status/connectors',  'Connectors'),
+    probeEndpoint(base + '/linkedin/health',    'LinkedIn'),
+    probeEndpoint(base + '/google/health',      'Google'),
+    probeEndpoint(base + '/firebase/health',    'Firebase'),
+    gcloud(['builds', 'list', '--limit=3', '--format=json']),
+  ]);
+
+  const pick = r => r.status === 'fulfilled' ? r.value : { status: 'error', error: r.reason?.message };
+
+  res.json({
+    ok: true,
+    gateway: pick(cloudRun),
+    connectors: pick(connectors),
+    services: {
+      linkedin:  pick(linkedin),
+      google:    pick(google),
+      firebase:  pick(firebase),
+    },
+    gcp: {
+      cloud_run:   { label: 'Cloud Run',   url: base },
+      cloud_build: pick(builds),
+    },
+    routes: {
+      github:   ['GET /repos', 'GET /repos/:owner:repo', 'POST /repos/create', 'GET /issues/:owner:repo', 'POST /issues/:owner:repo/create', 'GET /gists', 'POST /gists/create', 'GET /workflows/:owner:repo', 'POST /workflows/:owner:repo/:id/run', 'GET /files/:owner/:repo/:path', 'PUT /files/:owner/:repo/:path', 'GET /codespaces', 'POST /codespaces/create'],
+      notion:   ['GET /notion/get-overview', 'POST /notion/create-page', 'POST /notion/append-to-page/:pageId', 'GET /notion/read-block/:id', 'POST /notion/edit-request'],
+      linkedin: ['GET /linkedin/me', 'GET /linkedin/connections', 'POST /linkedin/share', 'GET /linkedin/posts', 'GET /linkedin/auth/url'],
+      google:   ['GET /google/jobs', 'GET /google/search', 'GET /google/companies'],
+      firebase: ['POST /firebase/logger', 'POST /firebase/notes'],
+      aws:      ['GET /s3/buckets', 'GET /secrets', 'GET /lambda/functions', 'POST /lambda/invoke/:functionName'],
+      session:  ['POST /session/rebuild'],
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+let _backend = {
+  id:     'akilahapigateway',
+  label:  'Akilah API Gateway',
+  url:    DEFAULT_GATEWAY_URL,
+  status: 'unknown'
+};
+
+function loadActiveBackend() {
+  if (process.env.API_GATEWAY_URL) {
+    console.log(`✅ API_GATEWAY_URL override active → ${_backend.url}`);
+    return;
+  }
+
+  const db = new sqlite3.Database(PATHS.akilah_servers_db, sqlite3.OPEN_READONLY, err => {
+    if (err) return;
+  });
+  db.all(
+    `SELECT * FROM "delta_0x00_deployment_01_active_deployments"
+     WHERE CG04_01_status = 'active' AND CG02_01_call_endpoint LIKE 'http%'
+     ORDER BY CG01_02_entry_number`,
+    [],
+    (err, rows) => {
+      db.close();
+      if (err || !rows.length) return;
+      const preferred = rows.find(r =>
+        r.CG01_01_entryUID === 'akilahapigateway'
+        || /akilahapigateway(?!-v3)/.test(r.CG02_01_call_endpoint || '')
+      );
+      const r = preferred || rows[0];
+      _backend = {
+        id:     r.CG01_01_entryUID,
+        label:  r.CG05_01_platform || 'Cloud Run',
+        url:    r.CG02_01_call_endpoint,
+        status: 'unknown'
+      };
+      console.log(`✅ active backend: ${_backend.id} → ${_backend.url}`);
+    }
+  );
+}
+
+app.get('/backend', (req, res) => {
+  res.json({ ok: true, backend: _backend });
+});
+
+app.post('/backend', (req, res) => {
+  const { id, label, url } = req.body;
+  if (!url) return res.status(400).json({ error: 'url required' });
+  _backend = { id: id || 'custom', label: label || url, url, status: 'unknown' };
+  console.log(`⇄  backend switched → ${_backend.id}: ${_backend.url}`);
+  res.json({ ok: true, backend: _backend });
+});
+
+app.get('/backend/ping', async (req, res) => {
+  // Cloud Run cold starts can take ~5s — give it 15s before marking offline
+  // accepts ?url= to ping any specific backend, not just the active one
+  const pingUrl  = req.query.url || _backend.url;
+  const isActive = !req.query.url || req.query.url === _backend.url;
+  const t0 = Date.now();
+  try {
+    await axios.get(pingUrl.replace(/\/$/, '') + '/', { timeout: 15000 });
+    const latency = Date.now() - t0;
+    if (isActive) { _backend.status = 'online'; _backend.latency = latency; }
+    res.json({ ok: true, backend: { url: pingUrl, status: 'online', latency } });
+  } catch {
+    if (isActive) { _backend.status = 'offline'; _backend.latency = null; }
+    res.json({ ok: true, backend: { url: pingUrl, status: 'offline', latency: null } });
+  }
+});
+
+// GET /backend/all — list all deployments from akilah_servers.db
+app.get('/backend/all', (req, res) => {
+  const db = new sqlite3.Database(PATHS.akilah_servers_db, sqlite3.OPEN_READONLY, err => {
+    if (err) return res.status(500).json({ error: err.message });
+  });
+  db.all(
+    `SELECT CG01_01_entryUID as id, CG02_01_call_endpoint as url, CG04_01_status as status,
+            CG05_01_platform as platform, CG05_02_provider as provider
+     FROM "delta_0x00_deployment_01_active_deployments"
+     WHERE CG02_01_call_endpoint LIKE 'http%'
+     ORDER BY CG01_02_entry_number`,
+    [],
+    (err, rows) => {
+      db.close();
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ ok: true, current: _backend.id, backends: rows });
+    }
+  );
+});
+
+// /api/* — same-origin proxy to the active Cloud Run gateway
+app.all('/api/*', async (req, res) => {
+  const upstreamPath = req.originalUrl.replace(/^\/api/, '');
+  const url = _backend.url.replace(/\/$/, '') + upstreamPath;
+  const headers = {};
+
+  Object.entries(req.headers).forEach(([key, value]) => {
+    const lower = key.toLowerCase();
+    if (['host', 'connection', 'content-length'].includes(lower)) return;
+    if (typeof value === 'string') headers[key] = value;
+  });
+
+  try {
+    const response = await axios({
+      url,
+      method: req.method,
+      headers,
+      data: ['GET', 'HEAD'].includes(req.method) ? undefined : req.body,
+      timeout: 15000,
+      validateStatus: () => true
+    });
+
+    _backend.status = response.status < 500 ? 'online' : 'degraded';
+
+    if (response.headers['content-type']) {
+      res.setHeader('Content-Type', response.headers['content-type']);
+    }
+
+    res.status(response.status).send(response.data);
+  } catch (e) {
+    _backend.status = 'offline';
+    res.status(502).json({ ok: false, error: e.message, backend: _backend.id, url });
+  }
+});
+
+// POST /proxy — forward any call through the active backend
+app.post('/proxy', async (req, res) => {
+  const { endpoint = '/', method = 'GET', payload = {} } = req.body;
+  const url = _backend.url.replace(/\/$/, '') + endpoint;
+  try {
+    const response = method === 'POST'
+      ? await axios.post(url, payload, { timeout: 15000 })
+      : await axios.get(url, { timeout: 15000 });
+    _backend.status = 'online';
+    res.json({ ok: true, backend: _backend.id, url, data: response.data });
+  } catch (e) {
+    _backend.status = 'offline';
+    res.status(502).json({ ok: false, error: e.message, backend: _backend.id, url });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STARTUP — auto-load gateway config + register in memory.db
+// ─────────────────────────────────────────────────────────────────────────────
+function loadGatewayConfig() {
+  if (!fs.existsSync(PATHS.gateway)) {
+    console.log('⚠  gateway.akilah not found at:', PATHS.gateway);
+    return;
+  }
+  const raw = fs.readFileSync(PATHS.gateway, 'utf8');
+  // Extract group names from gateway config
+  const groups = [...raw.matchAll(/-- GROUP (\d+): (.+)/g)].map(m => `G${m[1]}: ${m[2].trim()}`);
+  console.log(`✅ gateway.akilah loaded — ${groups.length} capability groups:`);
+  groups.forEach(g => console.log(`${g}`));
+}
+
+function registerSelf() {
+  const db    = new sqlite3.Database(PATHS.memory_db, err => {
+    if (err) { console.log('⚠  memory.db not reachable — skipping registry self-registration'); return; }
+  });
+  db.on('error', () => {});
+  const table = 'delta_0x11_smartactions_0x11_07_actionregistry';
+
+  db.get(`SELECT c01_00_entry_number FROM "${table}" ORDER BY c01_00_entry_number DESC LIMIT 1`, [], (err, row) => {
+    const next = row ? row.c01_00_entry_number + 1 : 15;
+
+    db.get(`SELECT COUNT(*) as c FROM "${table}" WHERE c01_01_entryUID = 'app.akilah'`, [], (err2, exists) => {
+      if (exists && exists.c > 0) {
+        db.run(`UPDATE "${table}" SET c01_02_status = 'ready' WHERE c01_01_entryUID = 'app.akilah'`);
+        console.log('✅ app.akilah status → ready in memory.db');
+      } else {
+        db.run(
+          `INSERT INTO "${table}" (c01_00_entry_number, c01_01_entryUID, c01_02_status, c01_03_narrativedescriptionhow, c01_04_usecase, c01_02_where)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [
+            next,
+            'app.akilah',
+            'ready',
+            'Single Express server. Serves webapp.akilah to browser. Gives webapp access to common/, appfeatures/, any Desktop file, folder, or SQLite DB. Forwards outbound requests to client.akilah. Gateway config drives what capabilities are available.',
+            'webapp.akilah calls this for all data and file access. Everything flows through here.',
+            '/Users/Akilah/Desktop/.akilah/00_akilahapp/controlller/app.akilah'
+          ],
+          () => console.log(`✅ app.akilah registered as entry ${next} in memory.db`)
+        );
+      }
+      db.close();
+    });
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOOLS — run Python scripts, stream output via SSE
+//
+//   GET  /tools/list            → tool manifest
+//   GET  /tools/stream/:name    → SSE stream (runs tool, emits stdout/stderr/done)
+//   POST /tools/run             → synchronous run (returns {ok, output, code})
+// ─────────────────────────────────────────────────────────────────────────────
+
+const TOOL_REGISTRY = {
+  rapid_log:       { script: path.resolve(__dirname, '../04_tools/test/rapid_log.py'),        label: 'rapid_log' },
+  agent:           { script: path.resolve(__dirname, '../01_src-webapp/common/scripts/agent.py'), label: 'agent.py' },
+  session_capsule: { script: path.resolve(PATHS.desktop, 'session_capsule_manager.py'),       label: 'session_capsule' },
+};
+
+app.get('/tools/list', (req, res) => {
+  res.json({
+    ok: true,
+    tools: Object.entries(TOOL_REGISTRY).map(([name, t]) => ({ name, label: t.label })),
+  });
+});
+
+app.get('/tools/stream/:name', (req, res) => {
+  const tool = TOOL_REGISTRY[req.params.name];
+  if (!tool) {
+    return res.status(404).json({ error: 'unknown tool', name: req.params.name });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  const extra = req.query.args ? req.query.args.split(' ').filter(Boolean) : [];
+  const proc  = spawn('python3', [tool.script, ...extra], { cwd: path.dirname(tool.script) });
+
+  const send = (type, data) => res.write('data: ' + JSON.stringify({ type, data }) + '\n\n');
+
+  send('start', { name: req.params.name, label: tool.label, ts: new Date().toISOString() });
+
+  proc.stdout.on('data', chunk => send('stdout', chunk.toString()));
+  proc.stderr.on('data', chunk => send('stderr', chunk.toString()));
+  proc.on('close',  code => { send('done', { code }); res.end(); });
+  proc.on('error',  err  => { send('error', { message: err.message }); res.end(); });
+  req.on('close',   ()   => { try { proc.kill(); } catch(_) {} });
+});
+
+app.post('/tools/run', (req, res) => {
+  const { tool, args = [] } = req.body;
+  const entry = TOOL_REGISTRY[tool];
+  if (!entry) return res.status(404).json({ ok: false, error: 'unknown tool', tool });
+
+  let output = '';
+  const proc = spawn('python3', [entry.script, ...args], { cwd: path.dirname(entry.script) });
+  proc.stdout.on('data', d => { output += d.toString(); });
+  proc.stderr.on('data', d => { output += d.toString(); });
+  proc.on('close', code => res.json({ ok: code === 0, tool, output, code }));
+  proc.on('error', err  => res.status(500).json({ ok: false, error: err.message }));
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// START
+// ─────────────────────────────────────────────────────────────────────────────
+app.listen(PORT, () => {
+  console.log(`\n⬡  app.akilah running on http://localhost:${PORT}`);
+  console.log(`webapp        → http://localhost:${PORT}/`);
+  console.log(`capabilities  → http://localhost:${PORT}/capabilities`);
+  console.log(`status        → http://localhost:${PORT}/status`);
+  console.log(`gateway       → http://localhost:${PORT}/gateway`);
+  console.log(`servers db    → http://localhost:${PORT}/servers\n`);
+  loadGatewayConfig();
+  loadActiveBackend();
+  registerSelf();
+});

@@ -4,6 +4,14 @@
 
 A unified API Gateway for GitHub, Notion, and Firebase deployed to Google Cloud Run with auto-scaling.
 
+## Canonical Repo
+
+This repository is now the single source of truth for the Akilah control plane.
+
+- Gateway runtime and hosted dashboard shell live here
+- Akilah source files live under `00_akilahapp/`
+- Cloud Run deploys are based on this repository
+
 ## 🚀 Quick Links
 
 - **[START HERE](./START-HERE.md)** - Navigation guide and decision framework

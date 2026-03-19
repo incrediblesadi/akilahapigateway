@@ -1,0 +1,599 @@
+<div id="ak-workspace">
+  <div id="ak-auth-gate">
+    <section id="ak-signin-view" class="ak-auth-view">
+      <div class="ak-auth-badge">single sign-in</div>
+      <div class="ak-auth-title">Akilah dashboard entry</div>
+      <div class="ak-auth-sub">
+        Sign in once, then the shell stays connected to the main gateway, Firebase state, and the current session view.
+      </div>
+      <div id="ak-google-signin"></div>
+      <button class="ak-btn ak-btn-primary" id="ak-btn-signin-fallback" hidden>Reload sign-in</button>
+      <div id="ak-auth-message">checking gateway auth…</div>
+    </section>
+
+    <section id="ak-workspace-view" class="ak-auth-view" hidden>
+      <div id="ak-ws-header">
+        <div class="ak-session-chip">
+          <span class="ak-chip-label">session</span>
+          <span id="ak-ws-session-id">loading…</span>
+        </div>
+        <div class="ak-session-chip">
+          <span class="ak-chip-label">signed in</span>
+          <span id="ak-ws-user">unknown</span>
+        </div>
+        <div class="ak-session-chip">
+          <span class="ak-chip-label">gateway</span>
+          <span id="ak-ws-status" class="ak-conn-dot" data-state="unknown"></span>
+        </div>
+        <button class="ak-btn ak-btn-ghost" id="ak-btn-signout">Sign out</button>
+      </div>
+
+      <div id="ak-dashboard-grid">
+        <section class="ak-panel" id="ak-panel-summary">
+          <div class="ak-panel-label">session overview</div>
+          <div class="ak-panel-title">Current container</div>
+          <div id="ak-summary-list" class="ak-list"></div>
+        </section>
+
+        <section class="ak-panel" id="ak-panel-services">
+          <div class="ak-panel-label">services</div>
+          <div class="ak-panel-title">Connected systems</div>
+          <div id="ak-services-grid"></div>
+        </section>
+
+        <section class="ak-panel" id="ak-panel-stage">
+          <div class="ak-panel-label">staging</div>
+          <div class="ak-panel-title">Session flow</div>
+          <div id="ak-stage-flow"></div>
+        </section>
+
+        <section class="ak-panel" id="ak-panel-runtime">
+          <div class="ak-panel-label">workspace</div>
+          <div class="ak-panel-title">Loaded containers</div>
+          <div id="ak-runtime-grid"></div>
+        </section>
+      </div>
+    </section>
+  </div>
+</div>
+
+<style>
+  #ak-workspace,
+  #ak-auth-gate {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+  }
+
+  .ak-auth-view {
+    flex: 1;
+    min-height: 0;
+  }
+
+  #ak-signin-view {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+
+  .ak-auth-badge {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(122, 244, 195, 0.25);
+    color: #7af4c3;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: rgba(122, 244, 195, 0.08);
+  }
+
+  .ak-auth-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  .ak-auth-sub {
+    max-width: 640px;
+    color: #92a8b9;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  #ak-auth-message {
+    min-height: 18px;
+    color: #92a8b9;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+  }
+
+  .ak-btn {
+    border: 1px solid rgba(113, 159, 191, 0.22);
+    border-radius: 999px;
+    padding: 9px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    color: #d7e6f3;
+    font: inherit;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .ak-btn-primary {
+    border-color: rgba(122, 244, 195, 0.3);
+    background: rgba(122, 244, 195, 0.12);
+    color: #7af4c3;
+  }
+
+  .ak-btn-ghost {
+    color: #92a8b9;
+  }
+
+  #ak-workspace-view {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  #ak-ws-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 18px;
+    border-bottom: 1px solid rgba(113, 159, 191, 0.18);
+    background: rgba(255, 255, 255, 0.02);
+    flex-wrap: wrap;
+  }
+
+  .ak-session-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(113, 159, 191, 0.18);
+    background: rgba(255, 255, 255, 0.03);
+    font-size: 11px;
+  }
+
+  .ak-chip-label {
+    color: #92a8b9;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .ak-conn-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.18);
+  }
+
+  .ak-conn-dot[data-state="online"] {
+    background: #7af4c3;
+    box-shadow: 0 0 0 6px rgba(122, 244, 195, 0.1);
+  }
+
+  .ak-conn-dot[data-state="offline"] {
+    background: #ff6b7a;
+    box-shadow: 0 0 0 6px rgba(255, 107, 122, 0.08);
+  }
+
+  #ak-dashboard-grid {
+    flex: 1;
+    min-height: 0;
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 18px;
+    overflow: auto;
+  }
+
+  .ak-panel {
+    border: 1px solid rgba(113, 159, 191, 0.18);
+    background: rgba(8, 18, 30, 0.64);
+    padding: 18px;
+    min-height: 180px;
+  }
+
+  #ak-panel-summary {
+    grid-column: span 4;
+  }
+
+  #ak-panel-services {
+    grid-column: span 8;
+  }
+
+  #ak-panel-stage,
+  #ak-panel-runtime {
+    grid-column: span 6;
+  }
+
+  .ak-panel-label {
+    color: #7af4c3;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+
+  .ak-panel-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+
+  .ak-list,
+  #ak-stage-flow,
+  #ak-runtime-grid {
+    display: grid;
+    gap: 10px;
+  }
+
+  .ak-list-row,
+  .ak-runtime-card,
+  .ak-service-card,
+  .ak-stage-card {
+    border: 1px solid rgba(113, 159, 191, 0.14);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+  }
+
+  .ak-list-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 12px;
+  }
+
+  .ak-list-row .label {
+    color: #92a8b9;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  #ak-services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .ak-service-card {
+    display: grid;
+    gap: 8px;
+  }
+
+  .ak-service-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .ak-service-status {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7af4c3;
+  }
+
+  .ak-service-status[data-status="missing"] {
+    color: #ffb86c;
+  }
+
+  .ak-service-detail {
+    font-size: 12px;
+    color: #92a8b9;
+    word-break: break-word;
+  }
+
+  .ak-stage-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .ak-stage-index {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(122, 244, 195, 0.24);
+    color: #7af4c3;
+  }
+
+  .ak-stage-name {
+    font-size: 14px;
+    text-transform: capitalize;
+  }
+
+  .ak-runtime-card {
+    display: grid;
+    gap: 6px;
+  }
+
+  .ak-runtime-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .ak-runtime-detail {
+    font-size: 12px;
+    color: #92a8b9;
+  }
+
+  @media (max-width: 1080px) {
+    #ak-panel-summary,
+    #ak-panel-services,
+    #ak-panel-stage,
+    #ak-panel-runtime {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    'use strict';
+
+    var TOKEN_KEY = 'akilah_gateway_token';
+    var authConfig = null;
+
+    function setAuthMessage(message) {
+      var node = document.getElementById('ak-auth-message');
+      if (node) node.textContent = message;
+    }
+
+    function getToken() {
+      return window.localStorage.getItem(TOKEN_KEY) || '';
+    }
+
+    function setToken(token) {
+      if (token) window.localStorage.setItem(TOKEN_KEY, token);
+    }
+
+    function clearToken() {
+      window.localStorage.removeItem(TOKEN_KEY);
+    }
+
+    function authFetch(url, options) {
+      var next = options || {};
+      var headers = Object.assign({}, next.headers || {});
+      var token = getToken();
+      if (token) headers.Authorization = 'Bearer ' + token;
+      return fetch(url, Object.assign({}, next, { headers: headers }));
+    }
+
+    function showSignedOut() {
+      document.getElementById('ak-signin-view').hidden = false;
+      document.getElementById('ak-workspace-view').hidden = true;
+    }
+
+    function showSignedIn() {
+      document.getElementById('ak-signin-view').hidden = true;
+      document.getElementById('ak-workspace-view').hidden = false;
+    }
+
+    function renderSummary(summary, user) {
+      var list = document.getElementById('ak-summary-list');
+      var rows = [
+        ['session_id', summary.id || 'unknown'],
+        ['updated_at', summary.timestamp || 'not built yet'],
+        ['notion_pages', String(summary.notionPages || 0)],
+        ['github_repos', String(summary.githubRepos || 0)],
+        ['firebase_paths', String(summary.firebasePaths || 0)],
+        ['signed_in_as', user.email || 'unknown']
+      ];
+
+      list.innerHTML = rows.map(function (row) {
+        return '<div class="ak-list-row"><span class="label">' + row[0] + '</span><span>' + row[1] + '</span></div>';
+      }).join('');
+    }
+
+    function renderServices(services) {
+      var grid = document.getElementById('ak-services-grid');
+      grid.innerHTML = Object.keys(services).map(function (key) {
+        var item = services[key];
+        var detail = item.url || item.databaseURL || item.label || '';
+        return (
+          '<div class="ak-service-card">' +
+            '<div class="ak-service-title">' + item.label + '</div>' +
+            '<div class="ak-service-status" data-status="' + item.status + '">' + item.status + '</div>' +
+            '<div class="ak-service-detail">' + detail + '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    function renderStageFlow(stageFlow) {
+      var container = document.getElementById('ak-stage-flow');
+      container.innerHTML = (stageFlow || []).map(function (stage, index) {
+        return (
+          '<div class="ak-stage-card">' +
+            '<div class="ak-stage-index">0' + (index + 1) + '</div>' +
+            '<div class="ak-stage-name">' + stage + '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    function renderRuntime(containers) {
+      var grid = document.getElementById('ak-runtime-grid');
+      grid.innerHTML = (containers || []).map(function (container) {
+        var detail = (container.items || []).map(function (item) {
+          return '<div>' + item.label + ': ' + item.value + '</div>';
+        }).join('');
+        return (
+          '<div class="ak-runtime-card">' +
+            '<div class="ak-runtime-title">' + container.title + '</div>' +
+            '<div class="ak-runtime-detail">' + detail + '</div>' +
+          '</div>'
+        );
+      }).join('');
+    }
+
+    function updateHeader(bootstrap) {
+      document.getElementById('ak-ws-session-id').textContent = bootstrap.session.summary.id || 'unknown';
+      document.getElementById('ak-ws-user').textContent = bootstrap.user.email || bootstrap.user.name || 'unknown';
+      document.getElementById('ak-ws-status').setAttribute('data-state', 'online');
+    }
+
+    function renderBootstrap(bootstrap) {
+      updateHeader(bootstrap);
+      renderSummary(bootstrap.session.summary || {}, bootstrap.user || {});
+      renderServices(bootstrap.services || {});
+      renderStageFlow(bootstrap.stageFlow || []);
+      renderRuntime((bootstrap.workspace && bootstrap.workspace.containers) || []);
+      showSignedIn();
+      setAuthMessage('connected');
+    }
+
+    function bootstrapDashboard() {
+      return authFetch('/api/dashboard/bootstrap')
+        .then(function (response) {
+          if (!response.ok) throw new Error('dashboard bootstrap failed (' + response.status + ')');
+          return response.json();
+        })
+        .then(function (data) {
+          renderBootstrap(data);
+          return data;
+        });
+    }
+
+    function handleCredentialResponse(result) {
+      setAuthMessage('signing in…');
+      fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: result.credential })
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error('google sign-in failed (' + response.status + ')');
+          return response.json();
+        })
+        .then(function (data) {
+          setToken(data.token);
+          return bootstrapDashboard();
+        })
+        .catch(function (error) {
+          clearToken();
+          showSignedOut();
+          setAuthMessage(error.message);
+        });
+    }
+
+    function loadGoogleScript() {
+      return new Promise(function (resolve, reject) {
+        if (window.google && window.google.accounts && window.google.accounts.id) {
+          resolve();
+          return;
+        }
+
+        var script = document.createElement('script');
+        script.src = 'https://accounts.google.com/gsi/client';
+        script.async = true;
+        script.defer = true;
+        script.onload = resolve;
+        script.onerror = function () {
+          reject(new Error('failed to load Google sign-in script'));
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    function renderGoogleButton() {
+      if (!authConfig || !authConfig.googleClientId) {
+        setAuthMessage('Google sign-in is not configured on the gateway');
+        return;
+      }
+
+      var container = document.getElementById('ak-google-signin');
+      container.innerHTML = '';
+
+      window.google.accounts.id.initialize({
+        client_id: authConfig.googleClientId,
+        callback: handleCredentialResponse
+      });
+
+      window.google.accounts.id.renderButton(container, {
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        shape: 'pill',
+        width: 280
+      });
+
+      setAuthMessage('sign in with Google to load the dashboard');
+    }
+
+    function hydrateFromSavedToken() {
+      var token = getToken();
+      if (!token) return Promise.resolve(false);
+
+      return authFetch('/api/auth/me')
+        .then(function (response) {
+          if (!response.ok) throw new Error('saved session expired');
+          return response.json();
+        })
+        .then(function () {
+          return bootstrapDashboard().then(function () { return true; });
+        })
+        .catch(function () {
+          clearToken();
+          showSignedOut();
+          return false;
+        });
+    }
+
+    function initializeAuth() {
+      return fetch('/api/auth/config')
+        .then(function (response) {
+          if (!response.ok) throw new Error('auth config unavailable');
+          return response.json();
+        })
+        .then(function (data) {
+          authConfig = data.auth || {};
+          return hydrateFromSavedToken().then(function (restored) {
+            if (restored) return;
+            showSignedOut();
+
+            if (!authConfig.googleConfigured || !authConfig.sessionConfigured) {
+              setAuthMessage('gateway auth is not fully configured yet');
+              document.getElementById('ak-btn-signin-fallback').hidden = false;
+              return;
+            }
+
+            return loadGoogleScript()
+              .then(renderGoogleButton)
+              .catch(function (error) {
+                setAuthMessage(error.message);
+                document.getElementById('ak-btn-signin-fallback').hidden = false;
+              });
+          });
+        })
+        .catch(function (error) {
+          showSignedOut();
+          setAuthMessage(error.message);
+          document.getElementById('ak-btn-signin-fallback').hidden = false;
+        });
+    }
+
+    document.getElementById('ak-btn-signin-fallback').addEventListener('click', function () {
+      initializeAuth();
+    });
+
+    document.getElementById('ak-btn-signout').addEventListener('click', function () {
+      clearToken();
+      showSignedOut();
+      setAuthMessage('signed out');
+      if (window.google && window.google.accounts && window.google.accounts.id) {
+        window.google.accounts.id.disableAutoSelect();
+      }
+    });
+
+    initializeAuth();
+  })();
+</script>

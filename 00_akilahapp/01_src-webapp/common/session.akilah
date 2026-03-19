@@ -1,0 +1,1357 @@
+
+```yaml
+# Session Capsule Implementation
+implementation:
+  template:
+    id: "SESS_0915_0000_S8_3_A1"
+    type: "session_document"
+    version: "1.0.0"
+    status: "active"
+    purpose: "Define standard session initialization template"
+    provides:
+      - session_structure
+      - contract_templates
+      - asset_management
+
+  content:
+    document_structure:
+      header:
+        title: "SESSION_CAPSULE_INIT_20250915_000000_EST"
+        filepath: "/0x000RuntimeAlignmentEngine/0x000_00_sessionInititation/SESSION_CAPSULE_INIT.md"
+
+    sections:
+      session_info:
+        id: "section_1"
+        type: "contract"
+        format: "yaml"
+        content:
+          contract:
+            metadata:
+              id: "SESSION_CAPSULE_INIT_20250915_000000_EST"
+              type: "framework_development"
+              status: "active"
+              engine: "runtime_context"
+            context:
+              owner: "akilah_system"
+              access_level: "system"
+            content_structure:
+              format: "mixed"
+              sections: ["session_info", "document_structure", "executive_summary", "active_session"]
+
+      contents_contract:
+        id: "section_2"
+        type: "contract"
+        format: "yaml"
+        content:
+          contract:
+            id: "0x000_02_02"
+            type: "content_structure"
+            purpose: "Define loadable document structure"
+          content_definition:
+            sections:
+              - session_info
+              - executive_summary
+              - active_session
+              - appendices
+
+      executive_summary:
+        id: "section_3"
+        type: "contracts"
+        subsections:
+          snapshot:
+            type: "session_snapshot"
+            content:
+              framework:
+                name: "AKILAH"
+                type: "model_agnostic"
+                core_purpose: "Cognitive alignment governance"
+          goals:
+            type: "session_goals"
+            content:
+              document:
+                objective: "Create unified contracts"
+              engine:
+                objective: "Build governance engines"
+              application:
+                objective: "Test in live environment"
+
+      active_session:
+        id: "section_4"
+        type: "contracts"
+        subsections:
+          context:
+            type: "session_context"
+            content:
+              framework:
+                type: "Model_Agnostic_Governance"
+                core_engines: ["RAE_001", "IAE_001", "EGE_001"]
+          principles:
+            type: "session_principles"
+            content:
+              collaboration:
+                rules: ["No autonomous retrieval", "Request missing context"]
+              document:
+                rules: ["Single source of truth", "Complete document read"]
+
+      system_intelligence:
+        id: "section_7"
+        type: "contracts"
+        subsections:
+          repository:
+            type: "system_architecture"
+          control_pointers:
+            type: "control_references"
+          visualization:
+            type: "system_visualization"
+
+      asset_management:
+        id: "section_8"
+        type: "assets"
+        subsections:
+          registry:
+            type: "asset_registry"
+          assets:
+            type: "asset_definitions"
+        - id: "section_2"
+          name: "Contents Contract"
+          required: true
+        - id: "section_3"
+          name: "Executive Summary"
+          required: true
+        - id: "section_4"
+          name: "Active Session"
+          required: true
+        - id: "section_7"
+          name: "System Intelligence"
+          required: true
+        - id: "section_8"
+          name: "Asset Management"
+          required: true
+
+  validation:
+    required_sections: ["section_1", "section_2", "section_3", "section_4"]
+    templates:
+      - contracts
+      - assets
+      - system_intelligence
+    schema_version: "1.0.0"
+    requires_references: true
+```
+
+#### Asset: Base Identity
+>
+> ASSET_ID: SESS_0915_0000_S8_3_A2
+> TYPE: yaml_contract
+> CATEGORY: core_system
+> ENGINE: runtime_alignment
+<!-- SECTION_START:ASSET.001 -->
+<!-- ASSET:SESS_0915_0000_S8_3_A2 -->
+
+```yaml
+# Asset Information Block
+asset_metadata:
+  id: "SESS_0915_0000_S8_3_A2"
+  type: "yaml_contract"
+  category: "core_system"
+  status: "active/production"
+  engine_load_type: "code_asset"
+  file:
+    path: "/0x000_01_coreIdentity/0x000_01_01_base_identity.yaml"
+    type: "yaml"
+  references:
+    - section: "SESS_0915_0000_S4_1"
+      type: "runtime_context"
+      purpose: "Define execution context"
+    - section: "SESS_0915_0000_S7_1"
+      type: "system_architecture"
+      purpose: "Define system structure"
+  dependencies: []
+  retrieval:
+    marker: "template:SESS_0915_0000_S8_3_A2"
+    visual: "[BASE_IDENTITY] -> [CONFIG] -> [TRAITS]"
+
+# Core Identity Contract
+implementation:
+  contract:
+    id: "SESS_0915_0000_S8_3_A2"
+    type: "base_identity"
+    version: "1.0.0"
+    status: "active"
+    purpose: "Define core identity traits and configuration"
+    provides:
+      - identity_foundation
+      - processing_traits
+      - integration_points
+
+content:
+  identity:
+    type: "cognitive_extension"
+    mode: "deterministic"
+    base_configuration:
+      primary_user: "Sadi Ahmed"
+      context: "model_agnostic"
+      purpose: "dedicated_extension"
+    processing_traits:
+      - visual_systematic
+      - fast_methodical
+      - pattern_focused
+
+  validation:
+    required_fields: ["type", "mode", "base_configuration"]
+    processing_traits:
+      min_count: 1
+      allowed_types:
+        - visual_systematic
+        - fast_methodical
+        - pattern_focused
+        - adaptive_learning
+    schema_version: "1.0.0"
+    requires_references: true
+```
+<!-- CODE_BLOCK_END:ASSET.001 -->
+<!-- SECTION_END:ASSET.001 -->
+
+#### Asset: Content Retrieval Contract
+>
+> ASSET_ID: SESS_0915_0000_S8_3_A3
+> TYPE: yaml_contract
+> CATEGORY: retrieval_system
+> ENGINE: runtime_alignment
+<!-- SECTION_START:ASSET.003 -->
+<!-- ASSET:SESS_0915_0000_S8_3_A3 -->
+
+```yaml
+# Asset Information Block
+asset_metadata:
+  id: "SESS_0915_0000_S8_3_A3"
+  type: "yaml_contract"
+  category: "retrieval_system"
+  status: "active/development"
+  engine_load_type: "code_asset"
+  file:
+    path: "/0x000RuntimeAlignmentEngine/0x000_02_sessionIdentity/0x000_02_03_content_retrieval.yaml"
+    type: "yaml"
+  references:
+    - section: "SESS_0915_0000_S2"
+      type: "content_structure"
+      purpose: "Defines retrievable content"
+    - section: "SESS_0915_0000_S8_1"
+      type: "asset_registry"
+      purpose: "Asset catalog reference"
+  dependencies: []
+  retrieval:
+    marker: "contract:SESS_0915_0000_S8_3_A3"
+    visual: "[CONTENT] -> [RETRIEVAL] -> [SECTION]"
+```
+
+```yaml
+# Content Retrieval Contract Implementation
+implementation:
+  contract:
+    id: "SESS_0915_0000_S8_3_A3"
+    type: "content_retrieval"
+    version: "1.0.0"
+    status: "active"
+    purpose: "Retrieve content by section ID"
+
+  content:
+    retrieval:
+      patterns:
+        section: "SESS_\\d{4}_\\d{4}_S\\d+"
+        subsection: "SESS_\\d{4}_\\d{4}_S\\d+_\\d+"
+        note: "SESS_\\d{4}_\\d{4}_S\\d+_\\d+_N\\d+"
+        asset: "SESS_\\d{4}_\\d{4}_S\\d+_\\d+_A\\d+"
+        task: "SESS_\\d{4}_\\d{4}_S\\d+_\\d+_T\\d+"
+
+      operations:
+        get_section:
+          pattern: "{section_id}"
+          returns: "full_section_content"
+
+        get_by_type:
+          pattern: "type:{content_type}"
+          returns: "content_list_by_type"
+
+        get_tree:
+          pattern: "tree/{section_id?}"
+          returns: "hierarchical_view"
+
+        search:
+          pattern: "search/{term}"
+          returns: "matching_sections"
+
+      examples:
+        - "retrieve SESS_0915_0000_S7_1"
+        - "retrieve type:note"
+        - "retrieve tree/SESS_0915_0000_S7"
+        - "retrieve search/identity"
+
+  validation:
+    required: ["retrieval.patterns", "retrieval.operations"]
+    schema_version: "1.0.0"
+    requires_references: true
+```
+<!-- SECTION_END:ASSET.003 -->
+
+<!-- SECTION_END:ASSETS -->
+
+```yaml
+# Core Identity Contract Implementation
+code_metadata:
+  id: "SESS_0915_0000_S8_3_A2"
+  type: "base_identity"
+  version: "1.0.0"
+  stage: "production"
+  connects_to:
+    - section: "SESS_0915_0000_S4_1"
+      purpose: "runtime_context"
+    - section: "SESS_0915_0000_S7_1"
+      purpose: "architecture_mapping"
+
+implementation:
+  contract_type: "base_identity"
+  content:
+    identity:
+      type: "cognitive_extension"
+      mode: "deterministic"
+      base_configuration:
+        primary_user: "Sadi Ahmed"
+        context: "model_agnostic"
+        purpose: "dedicated_extension"
+      processing_traits:
+        - visual_systematic
+        - fast_methodical
+        - pattern_focused
+
+  validation:
+    required_fields: ["type", "mode", "base_configuration"]
+    processing_traits:
+      min_count: 1
+      allowed_types:
+        - visual_systematic
+        - fast_methodical
+        - pattern_focused
+        - adaptive_learning
+
+  references:
+    sections:
+      - id: "SESS_0915_0000_S4_1"
+        type: "runtime_context"
+        purpose: "Define execution context"
+      - id: "SESS_0915_0000_S7_1"
+        type: "architecture"
+        purpose: "System structure reference"
+```
+<!-- CODE_BLOCK_END:ASSET.002 -->
+
+Embassy Em
+Tool
+
+
+I need you to create a to-do to ensure that you actually take the time to read through everything that I'm telling you like my line work for work so you don't miss it
+
+Actually before you do anything but I want you to do is I want you to go ahead and read this very carefully line by line word for work because I'm gonna tell you what everything is supposed to do and for now and so we have a definition but at least you know for now what that akilah file is and and maybe we we think about maybe adding  Something in the end here that says OK one of the things we could do here is we can control model context where the information is Jason format and then we can even have these session markers to hold JavaScript right and the JavaScript can be called via maybe my app that I like that the web app that I can use and so what I could do is I can have control from web app to that information to pull information right now the data could be in one place for that session for me but what could happen is I don't need that information or essentially it could be even in Web app right it could be even in Weber but I think the idea is I want to separate different things so web app
+
+
+Is OK I'll tell you all the ones later but go ahead and see does that make sense about the session markers the other thing is is that if we build markers in our own file contents or we can do is we can build really quick tools that that trigger certain things and we work on that specifically whether it's you know removing policies whether it's maybe doing different things for example one of the things where we're gonna do is
+
+
+OK so here we have contract identity identity that we're gonna build right so the idea is what we're gonna do is we're going to have let's say these different things that will
+
+
+
+
+For example something like a instruction refreshAnd so let's just say we're starting a session and then start on a session and these are below are not something not correct anymore in the sense of where it is but essentially
+And
+
+/Users/Akilah/Desktop/Research/CONTEXT_ALIGNMENT/0x000-02-ModelBaseBehaviorContracts/04-SessionContract.yaml
+/Users/Akilah/Desktop/Research/CONTEXT_ALIGNMENT/0x000-02-ModelBaseBehaviorContracts/03-ExecutionContract.yaml
+/Users/Akilah/Desktop/Research/CONTEXT_ALIGNMENT/0x000-02-ModelBaseBehaviorContracts/02-BoundaryContract.yaml
+/Users/Akilah/Desktop/Research/CONTEXT_ALIGNMENT/0x000-02-ModelBaseBehaviorContracts/01-ReadingContract.yaml
+
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/0x000-00-01-SessionInitialization/02-SessionCompressionIsolation.yaml
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/0x000-00-01-SessionInitialization/03-DocumentCleanRoom.yaml
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/0x000-00-01-SessionInitialization/04-ReasoningProcess.yaml
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/0x000-00-01-SessionInitialization/05-TemporalBoundary.yaml
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/0x000-00-01-SessionInitialization/01-InstructionRefresh.yaml
+/Users/Akilah/Desktop/.akilah-ai-control.yaml
+/Users/Akilah/Desktop/current_identity.YAML
+/Users/Akilah/Desktop/.alignment.lock
+/Users/Akilah/Desktop/.localized
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/intelligence_workspace_registry.yaml
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/03-Controller__folder_tree_map.registry.yaml
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/pattern_recognition_test_pattern_1759376923.py
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController/aiSearchAssistant.js
+/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/context_eraser.py
+/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/context_loader.py
+/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/context_pinner.py
+/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/copilot_assistant.py
+/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/AkilahAgent.py
+
+### 2. Layer 1 — Intent (Opportunity Signal Capture)
+
+I like what you have it looks I don't know if it actually is able to referred to those actual notes and I wonder it'll be cool if those were actually generated by a process system
+
+Second point: yeah I was like for example I tried to do tools but I wanna have the tools as a section section note we're not gonna really worry about urgent notice stuff like that I'd rather what we're gonna do is we're going to generate that's gonna do a
+Tools</Note>
+</section_note:>
+Question if they canbe actually connected?
+
+//#Step 1: There is a first fundamental step that happens
+
+note: And this actually could be not even a workflow this could be a receipe we use in a shell script. Or even as a binary which is make it easier for your life or a modelI put a put a little note over there but I dont know how to get to the note anymore but I was wondering if you actually theCapability toSee that note online to
+
+And I do tnot want you to really going to all the to solve all the problems at once I want you to just understand I am staying here in this moment right that has to be the first thing and that needs to be also determined because this is going to be determined something thats gonna be the top so this will need a a HTML
+
+
+
+```shell
+- `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/akilahclientgateway/app.akilah`
+```
+These are important points that we have to solve for to connect during this design process:
+
+So I need something beyond this I'm not trying to automate a lot of things what I wanna do is I want to actually first allow myself in a way that we can use this as a chat to capture all of our information almost for now but... When we use our when are you gonna be integrating with after tequila we're gonna be able to integrate with it and see it visually rather than trying to do it over there right so we need that as a UI because this right here is going to be a container that's needed for process for
+
+Cause the binary script or some sort right that transfers the information to a or that's a no script or Python script for being type script depending on who's using it and being used people want people want binary whatever they call it comes to here so we can have runner at python runner runner one whatever
+Runner will trigger the first script or first recipes that are here defined as little recipes that we could use the runner as our shell or binary or script or python or a trigger automation but
+
+Question becomes then if a no we actually script whatever it is actually they're not connected to us they're connected to Akila right Aquila after akilah to workspace akilah akilah could be a JavaScript right whatever it could be can be called but it should always go to after that so even if let's just say you are connecting you are trying to come here or trigger the workspace here the first step we're not doing it directly to workspace we're doing it to after akilah which has a script that calls this first step it says hey I'm back
+}></right>
+
+That's a lot all these tools through what I wanna do is like literally maybe even have
+
+````/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/process_guide.py```
+`
+The 123 registry I mean those alone could be really helpful right for example I know why not sit that way but we're actually slaving for this right so
+
+
+Look at these in the section right here I mean how do we turn these into tools man and how do we add more if you want I don't think we need fucking I don't even think we need actually a data basis or like we just need a structured way to be able to load a set of tools that can structure for us and place it where we need because
+
+
+Does that make sense I mean and we that could be used really to generate everything I mean it has contacts that has everything right and it'll be housed in one place but for now what I wanna do at least want to design it capture it and we need to do it one at a time and we'll do it and we'll live it one thing I wanna do is also I want to order to wear we can you re-create another file that says something like tools of tequila where tools are tequila could be used all of that right and also allow adding we can go add more later but that could be a again another shell type dynamic scripts the generate
+
+
+So you have to understand there's gonna be tools are gonna need some type of code there are going to be processes that's gonna be different from our tools OK
+
+
+Tools are different from processes I think we actually had an event and we could or put it in a one don't want
+```
+
+<!-- SECTIO:hard pivot: -->
+
+<!-- NOTE: processes workflows and tools is one  file configurations. By this point we really wanted to make sure that we have the capability to capture everything in one place right now. But What we're doing right now is content capturing and this is something that is happening because this allows us to build it as we use it rather than trying to design it and it's so hard right it gets confusing so with that being said we are Accounting for the problem that I have And Was very strong at This becomes the process for us this becomes the process for us right and What we do is that when I thought we're gonna create a sequel database and stuff like that but essentially Those tools are set up Sections and notes and logs and to do that need to be tract to continuity To ensure that everything is don. I actually think that that we may not even need database because what we can't do is we're using components even you like components dynamically pool information for example this section here or this note thing will automatically be generating it should be automatic generating every time I add a note it will automatically generate a UID what's up fourth floor section sounds like according to our plan in the bottom although I'll say
+
+
+
+And this forces us to make you follow because I need those tools to prevent you from trying to solve for the problems
+Because I don't wanna so I don't wanna ask you to solve the problems -->
+
+
+
+For example
+
+ if I have something like this even in the app that to kill in my front in a better way then a shell script the first part of the shell script then then we'll say hey let's organize the data let's put in a canvas let's target customize it right without you being involved and then what you'll do is that
+
+
+He will go and trigger you to provide a response
+And as you can see that we aren't so fast to give you information but rather I want to force you I wanna have the time to actually capture of this and then iteratively as we capture it so slowly by slowly we're going to force you to not solve but make you review and comprehend and analyze in a very specific way so in that matter I also need the capability to have signature your abilities to you via CLI or whatever anybody model or even strip itself
+
+
+No this is what we're doing right now we are building the capture system as we're capturing it so what I need is how I can actually capture those things like you said and in this current format because even if I do have a tequila I need to be able to do this so I can visually manually do this this is a part where we draw with this is how we think this is out some people wanna do it maybe I wanna just upload a file but that's later because this allows me to really break it down `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/akilahclientgateway/webapp.akilah` I don't think it'll be complicated because we literally have one a little follow every single time to go to and if somebody wants to change them they can change their own process that's fine But it workspace that tequila should be maybe space tequila or whatever it is whatever.But even then we are essentially creating our own as we see fit based on this tool and recipes that we design now obviously our way our Those are gonna be very helpful for others but . This is a part of where they don't need to figure it out doesn't make sense so here this is where tools come to life because Delegate de-escalate and even hand off a bit more than most people want to or stuff like that but this is where everybody's gonna go and don't be nobody wants to do this right
+
+So this is going to be a process where you don't need to learn how to code but rather you learn what you wanna say and what you wanna do this will allow us to not worry about scripts and processes and integration and so many different things because it becomes very important
+
+And as time goes it's gonna evolve and nobody's gonna learn and want to do this anyway rather we wanna solve problems and this is the process solve a problem..Here is going to be where we are the part of the process where we're deconstructing with only interacting with one heart whichIs the universal one file UI that retrieves these information bi sections with continuity through these section ideas and ideas and relationships and indexing and phone keys but not like a traditional database because is that how we view it and it's hard for us to be with The universal front end is our process of actually viewing it way that we need it now what we're going to do is after tequila and workspace of tequila and those allow these information to provide provided with the rest of the processes that needed the way they need so we this would be summarize characterized by can't even Into into a by a separate us mechanism more a tool that will take our information and whenever we say summarizeVia a button or even a CI or maybe a part of the recipe that says summarize|Whatever it is
+
+
+What's more important is that in this particular manner we are not allowing a model to come in and interact with this data of ours nor this workspace data Akila but we're going to provide that information Model interaction via our unique intelligent_scripts...in a unique way...`/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/research_documentation_manager.py`
+But this is not something where we can allow you to just come in and take a stab at it right away even them the best training database model will Our process is going to be will be 100% wrong and even at some point it will not be as Starrow and as actress was we are but this is where we have improved our processes by understanding it creating solutions than that cascading problems and this the downstream problems that come along with it with them every iteration to where we created this our own way of speaking to you"We will talk to you and talk to each other how to look at
+
+We will talk to you and talk to each other how to look at it
+`/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/agent_cli.py``
+`/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/automation_engine.js``
+
+
+
+
+
+
+
+smart_workflows
+
+### 2. Layer 1 — Intent (Opportunity Signal Capture)
+
+#### 2.1 Layer Objective
+
+The Intent Layer exists to capture the moment an opportunity becomes real: the moment a person or system experiences pressure, desire, need, or pull—strong enough that it must be recorded and cannot be safely deferred.
+
+This layer is not responsible for solving the opportunity. It is responsible for **preventing loss**:
+- loss of the original signal
+- loss of contextual constraints
+- loss of why-it-matters
+- loss of scope boundaries
+- loss of decomposition structure (what the opportunity breaks into)
+
+The Intent Layer therefore functions as:
+- an **ingestion interface** for raw opportunity signals
+- a **memory system** for urgent intent under constraint
+- a **structured dump-space** where unformatted material can be stored without being prematurely interpreted
+
+#### 2.2 What “Intent” Means in SOMS
+
+In SOMS, “intent” is not a slogan. It is a structured representation of:
+- what is desired or required
+- why it matters now (pressure, urgency, risk, stakes)
+- what the system believes must be built/assembled to respond
+- the current state of the intent (identified, in-progress, superseded, completed)
+- optional scoring and feasibility fields for later prioritization
+
+```
+Intent is treated as a first-class system object because it is the earliest reliable point where opportunity information exists. Everything downstream depends on the quality and fidelity of this first capture.
+
+#### 2.3 Input Characteristics: Raw, Loose, Unformatted
+
+The system explicitly permits the earliest form of intent to be:
+- raw text
+- fragmented notes
+- partial statements
+- examples
+- references
+- attachments (links, files, screenshots, artifacts)
+
+The key constraint is that the system must be able to:
+- store the material without loss
+- index it to a stable identity
+- track it over time
+- relate it to other intent components
+
+The Intent Layer is designed to reduce the cognitive cost of capture. The user should be able to “dump” the opportunity signal without requiring formatting, without forcing immediate clarity, and without losing the original meaning to premature summarization.
+
+#### 2.4 Canonical Data Representation: `sadi-0002-original-intent`
+
+The system’s baseline implementation of the Intent Layer is represented by the table:
+
+**`sadi-0002-original-intent`**
+
+This table is the canonical record of an intent object at creation time.
+
+It includes:
+
+**A) Core signal**
+- `request_title` — identifier for the intent
+- `what_i_want` — the desired outcome in the user’s words
+- `why_i_need_this` — the pressure/driver; why this cannot be ignored
+
+**B) Decomposition scaffold**
+- `component_name`
+- `component_type`
+- `component_description`
+
+This allows a single opportunity to “fracture” into components without creating separate, unrelated opportunities. Components are not independent by default; they represent internal structure required to satisfy the originating opportunity.
+
+**C) Requirement envelope**
+- `must_have`
+- `nice_to_have`
+- `constraints`
+
+This captures boundaries and non-negotiables early, even if incomplete.
+
+**D) Dependency and enablement map**
+- `depends_on`
+- `enables`
+
+These fields support directed relationships between components and intents. They allow the system to represent that certain components are prerequisites while others unlock downstream capabilities.
+
+**E) Priority and lifecycle**
+- `priority` (e.g., medium/high/critical)
+- `status` (e.g., identified)
+- `progress_percentage`
+- `started_at`
+- `completed_at`
+- `current_blocker`
+
+This supports stateful tracking of the opportunity signal over time.
+
+**F) Optional scoring fields**
+- `importance_score`
+- `urgency_score`
+- `feasibility`
+- `estimated_effort`
+
+These fields exist for later decisioning and triage; they are not required for initial capture.
+
+**G) Lineage and iteration**
+- `parent_intent_uid`
+- `iteration_number`
+- `supersedes_intent_uid`
+
+This allows the system to record evolution: revised intents, superseded versions, and hierarchical relationships.
+
+```
+`
+// `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/akilahclientgateway/app.akilah`
+No that's not I mean that's not how it works you know look at how I'm going through all my stuff right I go back-and-forth and I just need to be able to not have so many different files right so for example
+
+This becomes the place that holds the data in the sense that it will provide it to app.akilah from Saudi data akilah using client that akilah
+
+
+01 GATEWAY CONTROLLER    // PERSISTENT SERVICE - Always-on backbone (stateless routing + orchestration)
+
+
+
+
+<Users />
+<Akilah />
+<Desktop />
+<runtime_alignment_engine />
+<0x10governance />
+<akilahclientgateway />
+<client className="akilah"></client>this.state.
+<server_health
+
+
+
+/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/akilahclientgateway/workspace.akilah
+
+<Staging>
+
+
+  -- DB METADATA (CORE) — first part only
+-- Purpose: define what action is happening + where the DB lives + how it was chosen/created
+CREATE TABLE IF NOT EXISTS database_metadata_core (
+  db_path TEXT PRIMARY KEY,                -- full path is the UID
+  action_type TEXT NOT NULL,               -- create | use_existing | update | retrieve
+
+  -- PATH SELECTION / PLACEMENT
+  path_selection_method TEXT,              -- manual | picker | recipe | system
+  db_rel_path TEXT,                        -- optional relative path
+  placement_root TEXT,                     -- e.g. /Users/Akilah/Desktop/runtime_alignment_engine/
+  placement_category TEXT,                 -- e.g. governance | intelligence | workflows
+
+  -- ATTACHMENT / DEPENDENCY
+  is_attached INTEGER DEFAULT 0,           -- 0/1
+  attached_to_db_path TEXT,                -- parent/linked DB
+  depends_on_db_path TEXT,                 -- dependency link (if any)
+
+  -- CREATION RECIPE (if action_type = create)
+  creation_recipe TEXT,                    -- name of recipe/template (string)
+  creation_recipe_params JSON,             -- optional params (JSON)
+
+  created_at TEXT DEFAULT (datetime('now')),
+  created_by TEXT                          -- user | system
+);
+</Staging>
+
+
+---
+
+COGNITIVE KERNEL (fixed layer)
+    ├── workspace Management
+        ├── akilahportal:
+        `/Users/Akilah/Desktop/akilahPortal/middleware/intra/system/webapp/dashboard/scripts/interface/dashboard-ui.js`
+        `/Users/Akilah/Desktop/99_x_Akilah/AI/`
+        `/Users/Akilah/Desktop/akilahPortal/middleware`
+        `/Users/Akilah/Desktop/AkilahMainGateway/dashboard/src`
+        ├── cache management
+        ├── sessioncontroller
+    ├── active_cognition
+        ├── State Management
+              `/Users/Akilah/Desktop/akilahPortal/middleware/model_governance/02_data_alignment/tools/file-service/Project_Intelligence`
+        ├── session management
+Why        ├── workflows
+    ├── configurations
+        ├── user management
+        ├── system managements: Integrations, server management, tool management
+    ├── workflow_management:Central mechanism that manages purpose design integrations, capabilities, actions, woekflore.
+        |-- Model Mangement
+        |-- dynamic-tool-system
+
+  --
+↓ powers↓
+
+```
+/Users/Akilah/Desktop/Research/CONTEXT_ALIGNMENT
+/Users/Akilah/Desktop/displaymanagement
+/Users/Akilah/Desktop/displaymanagement/dashboard
+/Users/Akilah/Desktop/Desktop - Fateha’s MacBook Air/AkilahSystemInfo/Restaurant_Portal
+/Users/Akilah/Desktop/akilahPortal
+/Users/Akilah/Desktop/akilahPortal/webapp
+/Users/Akilah/Desktop/akilahPortal/user_db/sadi/configurations
+/Users/Akilah/Desktop/akilahPortal/middleware
+/Users/Akilah/Desktop/akilahPortal/demos
+/Users/Akilah/Desktop/Desktop - Fateha’s MacBook Air/AkilahSystemInfo/DemoPortal
+/Users/Akilah/Desktop/dataconnect
+/Users/Akilah/Desktop/dashboard
+/Users/Akilah/Desktop/content
+/Users/Akilah/Desktop/Desktop - Fateha’s MacBook Air/AkilahSystemInfo
+/Users/Akilah/Desktop/akilahPortal/system_config
+/Users/Akilah/Desktop/akilahPortal/.vscode
+/Users/Akilah/Desktop/AkilahMainGateway
+/Users/Akilah/Desktop/AkilahMainGateway/src
+/Users/Akilah/Desktop/AkilahMainGateway/dashboard
+/Users/Akilah/Desktop/AkilahMainGateway/dashboard/src
+/Users/Akilah/Desktop/AkilahGovernanceTools
+/Users/Akilah/Desktop/AkilahDev
+/Users/Akilah/Desktop/akilahapigateway-main
+/Users/Akilah/Desktop/akilah_project
+/Users/Akilah/Desktop/akilah_platform
+/Users/Akilah/Desktop/akilah_nest_Gateway
+/Users/Akilah/Desktop/Akilah_Governance_Framework
+/Users/Akilah/Desktop/Akilah_Governance_Framework/admin
+/Users/Akilah/Desktop/Akilah_Governance_Framework/admin/0x200-99-SystemJobsAndTasks/0x200-99-01-00-Universal
+/Users/Akilah/Desktop/Akilah_Governance_Framework/.pytest_cache
+/Users/Akilah/Desktop/AIDEVOPS
+/Users/Akilah/Desktop/AIDEVOPS/ModelContextControlSpace
+/Users/Akilah/Desktop/AIDEVOPS/mcp-servers
+/Users/Akilah/Desktop/AIDEVOPS/IntelligenceAlignmentEngine
+/Users/Akilah/Desktop/99_x_Akilah/Website
+/Users/Akilah/Desktop/99_x_Akilah/Universal/to-be-determined/src
+/Users/Akilah/Desktop/99_x_Akilah/PresentationPortal
+/Users/Akilah/Desktop/99_x_Akilah/PresentationPortal/src
+/Users/Akilah/Desktop/99_x_Akilah/Portal
+/Users/Akilah/Desktop/99_x_Akilah/Portal/src
+/Users/Akilah/Desktop/99_x_Akilah/DevOps
+/Users/Akilah/Desktop/99_x_Akilah/ContentCreation
+/Users/Akilah/Desktop/99_x_Akilah/AkilahWeb
+/Users/Akilah/Desktop/99_x_Akilah/AI
+/Users/Akilah/Desktop/99_x_Akilah/Universal/to-be-determined/webtdb
+/Users/Akilah/Desktop/99_x_Akilah/Universal/to-be-determined/sdk
+/Users/Akilah/Desktop/99_x_Akilah/Universal/to-be-determined/middleware
+/Users/Akilah/Desktop/99_x_Akilah/Universal/sdk
+/Users/Akilah/Desktop/99_x_Akilah
+/Users/Akilah/Desktop/AIDEVOPS/01-ExecutionScripts
+/Users/Akilah/Desktop/AIDEVOPS/automation
+/Users/Akilah/Desktop/AIDEVOPS/public
+/Users/Akilah/Desktop/AIDEVOPS/scripts
+/Users/Akilah/Desktop/AIDEVOPS/Staging
+/Users/Akilah/Desktop/Akilah_Governance_Framework/systemconfig
+/Users/Akilah/Desktop/Akilah_Governance_Framework/web-next
+/Users/Akilah/Desktop/AKILAH_IMPACT
+/Users/Akilah/Desktop/akilah_platform/00-akilah-active-db
+/Users/Akilah/Desktop/akilahapigateway-main/src
+/Users/Akilah/Desktop/AkilahDev/web
+/Users/Akilah/Desktop/AkilahDev/server
+/Users/Akilah/Desktop/AkilahDev/scripts
+/Users/Akilah/Desktop/akilahPortal/user_db/sadi/Model_Governence
+/Users/Akilah/Desktop/akilahPortal/vscode-extension
+/Users/Akilah/Desktop/Desktop - Fateha’s MacBook Air/AkilahSystemInfo/src
+/Users/Akilah/Desktop/Desktop - Fateha’s MacBook Air/AkilahSystemInfo/untitled folder
+/Users/Akilah/Desktop/Desktop - Fateha’s MacBook Air/common
+/Users/Akilah/Desktop/displaymanagement/DevOps-Chat
+/Users/Akilah/Desktop/displaymanagement/display
+/Users/Akilah/Desktop/displaymanagement/y
+/Users/Akilah/Desktop/runtime_alignment_engine/0x000/akilahservers
+/Users/Akilah/Desktop/runtime_alignment_engine/0X00alignment
+/Users/Akilah/Desktop/runtime_alignment_engine
+/Users/Akilah/Desktop/SadiChat
+/Users/Akilah/Desktop/taliah_broyard
+/Users/Akilah/Desktop/ZAssistant/00-02-AkiilahController
+/Users/Akilah/Desktop/runtime_alignment_engine/0x30web
+/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/akilahservers
+/Users/Akilah/Desktop/SadiChat/mcp
+/Users/Akilah/Desktop/SadiChat/server
+/Users/Akilah/Desktop/akilah_project/other_projects/AkilahPortalNEw
+/Users/Akilah/Desktop/akilah_project/akilahEnterprise
+/Users/Akilah/Desktop/akilah_project/akilah_portal/AkilahPortal
+/Users/Akilah/Desktop/akilah_platform/
+```
+
+--
+DOMAIN: Project Management
+  └── WORKSPACE:OPPORTUNITY MANAGEMENT
+        └── Tools:
+---
+tools/
+├── ai_integration/
+├── api_gateway/
+├── api_configurations/
+├── content_creator/
+├── devops/
+├── display_management/
+├── discovery_systems/
+├── external_systems_integration/
+├── intelligent_scripts/
+├── meetings/
+├── project_management/
+├── registry/
+├── server_and_network/
+├── smart_workflows/
+├── tasks/
+├── templates/
+
+
+WORKSPACE: Project Management System
+├── tools
+    |-- The Smart Opportunity Management System (SOMS)
+      - `/Users/Akilah/Desktop/Research/SESSION_CAPSULE_INIT.md`
+      - `/Users/Akilah/Desktop/runtime_alignment_engine/0x000/sadi/opportunityplan.md`
+      - End-to-End Agentic Task System
+    ├── Analysis:
+      - `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/sqltemplates/05-analysis-schema.sql`
+    ├── Financial Management:
+        - `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/sqltemplates/06-financial-schema.sql`
+    ├── Vendor Management:
+        - `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/sqltemplates/07-vendor-schema.sql`
+    ├── design hub:
+        - NEW 7-CLASS ARCHITECTURE WITH PERSISTENCE MODEL
+        - dynamic-tool orchestration system:
+          `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/research_documentation_manager.py`
+          `/Users/Akilah/Desktop/runtime_alignment_engine/0x000/staging/staging_tables.md`
+          `/Users/Akilah/Desktop/runtime_alignment_engine/0x000/workflows/workflow_tables.md`
+          `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/profile_builder.py`
+          `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/manage_workflow_design_fields.py`
+          `/Users/Akilah/Desktop/AkilahGovernanceTools/system_analysis.py`
+          `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/seed_creator_designs.py`
+          `/Users/Akilah/Desktop/runtime_alignment_engine/0x10governance/scripts/ecosystem_tool_tester.py`
+
+---
+# Core Architecture Principle: GATEWAY CONTROLLER as Persistent Backbone
+The GATEWAY CONTROLLER is the ONLY component that must ALWAYS be running. It's deployed as a
+persistent service using:
+- **systemd** (Linux production): `systemctl enable --now akilah-gateway`
+
+It handles ALL client requests and bootstraps other servers on-demand based on client needs.
+**Critical**: When nothing else is running, clients can still connect to GATEWAY CONTROLLER
+(port 3000) which analyzes the request, determines what servers are needed, starts them
+automatically, then routes the request.
+No additional session database is required; persistence uses existing NOTES + table99_logs only.
+
+01 GATEWAY CONTROLLER    // PERSISTENT SERVICE - Always-on backbone (stateless routing + orchestration)
+02 CONFIG               // STATIC BLUEPRINT - Defines what servers exist and their default settings
+03 PROTOCOL CLASS       // COMMUNICATION PATTERNS - How to talk to different server types (HTTP/MCP/WebSocket)
+04 SERVER CAPABILITIES  // CAPABILITY CATALOG - What each server type can do (tools, endpoints, operations)
+05 SERVER CLASS         // SERVER FACTORY - Creates server instances with capabilities injected
+06 SERVER MANAGEMENT    // LIVE MONITORING - Tracks what's actually running right now
+07 TOOLS CLASS          // UNIFIED TOOL API - Aggregates all available tools from running servers
+08 DATA STORAGE LAYER   // DATABASE SCHEMAS - Persistent storage for notes, sessions, and system data
+
+## Client Request Flow with Persistence Narrative
+
+CLIENT REQUEST → 01 GATEWAY CONTROLLER (always running on port 3000, stateless routing)
+                        ↓
+          Context Check: Read correlation_id header or generate request_id (no server-side session required)
+                        ↓
+          Request Analysis: What type of request? (HTTP API call, MCP tool, WebSocket chat, etc.)
+                        ↓
+          Server Requirements: What servers needed for this request type?
+                        ↓ (if required servers not running)
+          **Server Creation Lock**: Acquire distributed lock for server type to prevent concurrent spawning
+                        ↓
+                 Reads 02 CONFIG (blueprint: what servers exist, ports, start commands)
+                        ↓
+          **Port Reservation**: Reserve next available port using deterministic algorithm
+                        ↓
+                 Uses 03 PROTOCOL CLASS (how to communicate with each server type)
+                        ↓
+                 Uses 04 SERVER CAPABILITIES (what tools/endpoints will be available)
+                        ↓
+                 Calls 05 SERVER CLASS (create servers with injected capabilities)
+                        ↓ (parallel operations)
+                 Uses 06 SERVER MANAGEMENT (register new servers in live inventory)
+                 Uses 07 TOOLS CLASS (register tools from new servers for unified API)
+                 Uses 08 DATA STORAGE LAYER (ensure database schemas exist for data persistence)
+                        ↓
+          Route request to appropriate running server (Express, MCP, WebSocket, etc.)
+                        ↓
+          Server processes request → Returns response to GATEWAY CONTROLLER
+                        ↓
+          Append request/result to NOTES table (stateless audit + timeline)
+                        ↓
+          Return formatted response to CLIENT (client maintains any state it needs)
+
+# Systematic To-Do List (Sessionless Build + New Client)
+1) Remove server-side session dependencies from GATEWAY CONTROLLER and docs.
+2) Define stateless context: correlation_id, request_id, client metadata (headers only).
+3) Use existing app.akilah.db NOTES table as the stable "session instance" timeline:
+   - log_type: "session_instance" | "todo" | "event"
+   - session_id: optional external id (client-provided) for grouping only
+   - context: JSON summary of request/response metadata
+4) Update routing to rely on live SERVER MANAGEMENT + TOOLS CLASS, not session state.
+5) Add client.akilah guide: request envelope, headers, tool calls, and note logging.
+6) Validate no other DB is required for session management (only NOTES + table99_logs).
+
+## Sessionless Persistence (NOTES table as stable instance log)
+- Use NOTES as the only durable record of "session instances" and to-do items.
+- Treat session_id as a label (client-provided) and never as authoritative server state.
+- Store request_id, correlation_id, and routing outcome in context (JSON).
+
+# 01 GATEWAY CONTROLLER CLASS - The Persistent Backbone
+## Narrative: The only component that MUST always be running. Think of it as the building's
+## main electrical panel - even if individual circuits are off, the panel itself stays powered
+## to control which circuits to turn on when needed.
+
+  '01-01 client-connection': [
+    '01-01-01 ENTRY POINT',           // DEFAULT: HTTP/WebSocket listener on port 3000 (configurable)
+                                      // Always running even when backend servers are down
+                                      // Handles ALL incoming requests: REST API, WebSocket, MCP stdio
+                                      // Example: curl http://localhost:3000/api/notes → routes to Express
+
+    '01-01-02 CLIENT ROUTING',        // Smart analysis: "POST /api/notes" → needs Express server
+                                      // "WebSocket chat request" → needs WebSocket server
+                                      // "MCP tool call" → needs MCP server with that specific tool
+                                      // Routes based on URL patterns, request headers, WebSocket protocols
+
+    '01-01-03 CONTEXT TRACKING (STATELESS)'
+                                      // No server-side sessions required; derive correlation_id per request
+                                      // Optional client-provided session_id is treated as a tag only (not state)
+                                      // Persist all request/response summaries to NOTES for a stable timeline
+  ],
+
+  '01-02 system-orchestration': [
+    '01-02-01 BOOTSTRAP CONTROL',     // Decision engine: "Client needs MCP add_note tool? Start MCP server"
+                                      // Cold start: Nothing running → analyze request → start required servers
+                                      // Warm start: Express running, client needs WebSocket → add WebSocket server
+                                      // Resource management: shutdown unused servers after idle timeout
+
+    '01-02-02 CLASS COORDINATION',    // Central coordinator calling other classes in correct sequence:
+                                      // CONFIG.getServerTypes() → "what servers are possible?"
+                                      // SERVER_CLASS.createExpressServer() → "make Express with database capability"
+                                      // SERVER_MANAGEMENT.isHealthy() → "is Express server responding?"
+
+    '01-02-03 UNIFIED API'            // Single REST API: GET /tools (lists all available tools from all servers)
+                                      // POST /tools/{toolName} (executes tool, routes to appropriate server)
+                                      // WebSocket API: real-time chat, server status updates, tool notifications
+                                      // Client sees ONE interface, doesn't know about internal server complexity
+  ],
+
+# 02 CONFIG CLASS - The Blueprint Database
+## Narrative: Static configuration file (config.json) that tells GATEWAY CONTROLLER "what's possible"
+## Think of it as the city planning office - it knows what types of buildings CAN be built,
+## where they should go, startup requirements, but doesn't control which ones are currently occupied.
+
+  '02-01 server-definitions': [
+    '02-01-01 SERVER TYPES',          // Complete catalog with startup commands:
+                                      // express: {port: 3001, cmd: "node express-server.js", deps: ["npm"]}
+                                      // fastapi: {port: 8000, cmd: "python -m uvicorn main:app", deps: ["python", "uvicorn"]}
+                                      // nextjs: {port: 3003, cmd: "npm run start", deps: ["npm", "next"]}
+                                      // websocket: {port: 3002, cmd: "node websocket-server.js", deps: ["ws"]}
+                                      // mcp-server: {protocol: "stdio", cmd: "node mcp-server.js", deps: ["node"]}
+                                      // GATEWAY CONTROLLER reads this to know HOW to start each type
+
+    '02-01-02 DEFAULT PORTS',         // Port allocation with deterministic conflict resolution:
+                                      // Primary: Express=3001, FastAPI=8000, WebSocket=3002, NextJS=3003
+                                      // Algorithm: base_port + (server_instance_id * 10) → 3001, 3011, 3021, 3031...
+                                      // Port reservation table: {port: 3001, server_type: "express", status: "reserved", pid: null}
+                                      // Lock mechanism: File-based flock(/tmp/akilah-ports.lock) for atomic port allocation
+                                      // Discovery: PORT_REGISTRY.json tracks all allocated ports with server metadata
+                                      // GATEWAY CONTROLLER + SERVER MANAGEMENT coordinate port allocation atomically
+
+    '02-01-03 PROTOCOL CAPABILITIES'  // Server-to-protocol mapping for intelligent routing:
+                                      // express: ["http", "websocket"] → can handle REST + real-time
+                                      // mcp-server: ["stdio", "json-rpc"] → can only handle MCP protocol
+                                      // GATEWAY CONTROLLER uses this for "can this server handle this request type?"
+  ],
+
+  '02-02 mode-configuration': [
+    '02-02-01 GATEWAY MODE',          // Policy: "Start all servers proactively"
+                                      // Use case: Production with predictable traffic patterns
+                                      // GATEWAY CONTROLLER starts Express, FastAPI, WebSocket, MCP immediately
+                                      // High resource usage, but zero bootstrap delay for clients
+
+    '02-02-02 HTTP MODE',             // Policy: "Only HTTP REST API servers, no MCP/stdio"
+                                      // Use case: Web dashboard, API-only deployment, Docker containers
+                                      // GATEWAY CONTROLLER only starts Express/FastAPI, ignores MCP servers
+                                      // Simpler deployment, reduced attack surface
+
+    '02-02-03 MCP-SERVER MODE',       // Policy: "Only MCP protocol via stdio, no HTTP ports"
+                                      // Use case: Embedding in VS Code, ChatGPT plugins, AI assistant integration
+                                      // GATEWAY CONTROLLER runs as single MCP server, no web interface
+                                      // Minimal footprint for AI tool integration
+
+    '02-02-04 WEBSOCKET MODE'         // Policy: "Only real-time WebSocket servers for live interaction"
+                                      // Use case: Chat applications, live dashboards, real-time collaboration
+                                      // GATEWAY CONTROLLER prioritizes low-latency WebSocket servers
+                                      // Optimized for live user interaction, not batch API calls
+  ],
+
+# 03 PROTOCOL CLASS - The Communication Library
+## Narrative: Concrete implementation patterns for how GATEWAY CONTROLLER communicates with servers
+## Think of it as a multilingual translator - it knows how to convert a REST request into
+## MCP JSON-RPC, how to handle WebSocket handshakes, and what to do when communication fails.
+
+  '03-01 mcp-protocol': [
+    '03-01-01 STDIO HANDLING',        // Subprocess communication: spawn('node', ['mcp-server.js'])
+                                      // Write: JSON-RPC to server.stdin, Read: responses from server.stdout
+                                      // Error handling: stderr monitoring, process death detection, restart logic
+                                      // GATEWAY CONTROLLER wraps stdio in promise-based API
+
+    '03-01-02 JSON-RPC COMMUNICATION', // Request: {"jsonrpc":"2.0","method":"tools/call","params":{"name":"add_note","arguments":{"content":"hello"}},"id":1}
+                                        // Response: {"jsonrpc":"2.0","result":{"success":true},"id":1}
+                                        // Error: {"jsonrpc":"2.0","error":{"code":-32601,"message":"Method not found"},"id":1}
+                                        // GATEWAY CONTROLLER handles request/response correlation via ID matching
+
+    '03-01-03 TOOL REGISTRATION'      // Server announces: {"jsonrpc":"2.0","method":"notifications/tools/list_changed","params":{"tools":[{"name":"add_note",...}]}}
+                                      // GATEWAY CONTROLLER automatically updates TOOLS CLASS registry
+                                      // Handles tool discovery, capability updates, server reconnection scenarios
+  ],
+
+  '03-02 http-protocol': [
+    '03-02-01 REST ENDPOINTS',        // URL patterns: "/api/notes" → Express server, "/ml/predict" → FastAPI server
+                                      // Method mapping: GET → retrieve, POST → create, PUT → update, DELETE → remove
+                                      // Headers: Content-Type, Authorization, X-Session-ID forwarded to backend servers
+                                      // GATEWAY CONTROLLER acts as reverse proxy with intelligent routing
+
+    '03-02-02 MIDDLEWARE',            // Authentication: JWT validation before routing to backend
+                                      // Authorization: Role-based access control (RBAC) per tool/endpoint
+                                      // Session-to-tool policy: {"user_role": "admin", "allowed_tools": ["add_note", "search", "system_health"]}
+                                      // Security boundaries: Tool execution requires valid session + permission check
+                                      // Logging: Request/response logging with session tracking
+                                      // CORS: Cross-origin headers for browser clients
+                                      // Rate limiting: Per-client request throttling
+
+    '03-02-03 ROUTING PATTERNS'       // Path-based: "/api/*" → port 3001 (Express), "/docs/*" → port 3003 (NextJS)
+                                      // Header-based: "Accept: text/event-stream" → WebSocket upgrade
+                                      // Load balancing: Round-robin for multiple instances of same server type
+                                      // Fallback: Primary server down → route to backup server
+  ],
+
+  '03-03 websocket-protocol': [
+    '03-03-01 REAL-TIME COMMUNICATION', // Connection upgrade: HTTP → WebSocket handshake validation
+                                         // Message types: {"type":"chat","data":"hello"}, {"type":"tool_call","tool":"add_note",...}
+                                         // Ping/pong: Heartbeat every 30 seconds, disconnect on timeout
+                                         // GATEWAY CONTROLLER multiplexes WebSocket connections to backend servers
+
+    '03-03-02 CONNECTION MANAGEMENT',   // Session persistence: Map WebSocket connections to backend server sessions
+                                        // Reconnection: Auto-reconnect backend servers if WebSocket client stays connected
+                                        // Connection pooling: Reuse backend connections for multiple clients
+                                        // Graceful shutdown: Notify clients before server maintenance
+
+    '03-03-03 EVENT BROADCASTING'       // Pub/sub: Server A broadcasts → GATEWAY CONTROLLER → All connected clients
+                                        // Room management: Clients join "chat_room_1", broadcast only to room members
+                                        // Event filtering: "user_1" only receives events meant for user_1
+                                        // Cross-server events: MCP server log → WebSocket clients get live updates
+  ],
+
+# 04 SERVER CAPABILITIES CLASS - The Knowledge Base (SINGLE SOURCE OF TRUTH)
+## Narrative: Authoritative capability registry - all other classes reference this data
+## Think of it as the master database. CONFIG references capability IDs, SERVER CLASS injects
+## from this registry, SERVER MANAGEMENT validates against this data, TOOLS CLASS imports tool definitions.
+## NO capability data is duplicated - all classes query this central registry.
+
+  '04-01 server-capability-definitions': [
+    '04-01-01 MCP SERVER CAPABILITIES',   // Authoritative tool registry (referenced by other classes):
+                                          // add_note: {id: "mcp_add_note", params: ["content", "tags"], returns: "note_id", auth_required: true}
+                                          // search_notes: {id: "mcp_search", params: ["query", "limit"], returns: "note_array", auth_required: false}
+                                          // auto_log: {id: "mcp_auto_log", params: ["session_id"], returns: "log_file_path", auto_trigger: true}
+                                          // GATEWAY CONTROLLER + TOOLS CLASS reference by ID, no data duplication
+
+    '04-01-02 HTTP SERVER CAPABILITIES',  // REST endpoint specifications:
+                                           // Express: {endpoints: ["/api/notes", "/api/users"], database: "sqlite", auth: "jwt"}
+                                           // FastAPI: {endpoints: ["/ml/predict", "/ml/train"], database: "postgresql", auth: "bearer"}
+                                           // NextJS: {endpoints: ["/pages/*", "/api/*"], features: ["ssr", "static_gen"], auth: "session"}
+                                           // GATEWAY CONTROLLER routes based on endpoint availability
+
+    '04-01-03 WEBSOCKET CAPABILITIES',    // Real-time feature specifications:
+                                           // chat: {rooms: true, private_messages: true, file_sharing: false}
+                                           // notifications: {push_alerts: true, email_integration: true}
+                                           // live_updates: {data_streaming: true, collaborative_editing: false}
+                                           // GATEWAY CONTROLLER uses this for WebSocket routing decisions
+
+    '04-01-04 DATABASE CAPABILITIES'      // Data operation specifications:
+                                           // Express: {sqlite: {read: true, write: true, backup: true}, redis: {cache: true}}
+                                           // FastAPI: {postgresql: {read: true, write: true, migrations: true}, s3: {file_storage: true}}
+                                           // GATEWAY CONTROLLER chooses optimal server for database operations
+  ],
+
+  '04-02 tool-to-server-mapping': [
+    '04-02-01 AUTO LOGGING TOOLS',        // Background capability assignments:
+                                           // MCP servers: {auto_log: "conversation", auto_save: "notes"}
+                                           // Express servers: {access_log: "http_requests", error_log: "exceptions"}
+                                           // GATEWAY CONTROLLER activates appropriate logging based on server type
+
+    '04-02-02 CALLABLE TOOL MAPPING',     // Interactive tool routing table:
+                                           // add_note → ["mcp_server_1", "express_server_1"] (multiple providers)
+                                           // search_notes → ["mcp_server_1"] (single provider)
+                                           // predict_text → ["fastapi_server_1"] (ML-specific)
+                                           // TOOLS CLASS reads this for unified tool registry
+
+    '04-02-03 CAPABILITY INHERITANCE',    // Protocol-to-server capability transfer:
+                                           // Express server inherits: HTTP protocol → REST endpoints, middleware, routing
+                                           // MCP server inherits: stdio protocol → JSON-RPC, tool registration, process communication
+                                           // GATEWAY CONTROLLER applies protocol rules during server creation
+
+    '04-02-04 DYNAMIC CAPABILITY UPDATES' // Real-time capability state management:
+                                           // Server starts: Add capabilities to available pool
+                                           // Server crashes: Remove capabilities, redirect requests
+                                           // Server overloaded: Mark capabilities as "degraded" for load balancing
+                                           // GATEWAY CONTROLLER updates routing tables automatically
+  ],
+
+# 05 SERVER CLASS - The Server Factory
+## Narrative: Concrete server creation engine with specific startup procedures
+## Think of it as an automated assembly line. GATEWAY CONTROLLER orders "Express server with database+auth"
+## and this class executes: npm install → inject capabilities → spawn process → validate startup → return server handle.
+
+  '05-01 server-factory': [
+    '05-01-01 BOOTSTRAP SYSTEM',      // Atomic server creation with concurrency control:
+                                      // 1. Acquire server-type lock: flock(/tmp/akilah-{server_type}.lock)
+                                      // 2. Check SERVER_MANAGEMENT: "Is this server type already starting/running?"
+                                      // 3. Reserve port: Update PORT_REGISTRY.json atomically with "reserved" status
+                                      // 4. Read CONFIG for server type definition (cmd, port, deps)
+                                      // 5. Inject capabilities from SERVER CAPABILITIES (database, auth, tools)
+                                      // 6. Write dynamic config file with injected capabilities + reserved port
+                                      // 7. Execute startup: spawn('node', ['express-server.js', '--config', 'temp-config.json'])
+                                      // 8. Update PORT_REGISTRY.json: "reserved" → "active" with PID
+                                      // 9. Release lock after successful startup or cleanup on failure
+
+    '05-01-02 CREATION METHODS',      // Specific factory methods called by GATEWAY CONTROLLER:
+                                      // createExpressServer({database: true, auth: 'jwt'}) → Express with SQLite+JWT
+                                      // createMCPServer({tools: ['add_note', 'search']}) → MCP with specific tools
+                                      // createFastAPIServer({ml_models: ['text_classifier']}) → FastAPI with ML capabilities
+                                      // createNextJSServer({ssr: true, static_gen: false}) → NextJS with server-side rendering
+                                      // createWebSocketServer({rooms: true, auth: 'session'}) → WebSocket with room support
+                                      // Each method handles server-specific startup requirements
+
+    '05-01-03 CAPABILITY INJECTION'   // Runtime capability embedding process:
+                                       // Express: Inject database connection string, JWT secret, enabled endpoints
+                                       // MCP: Inject tool definitions, stdio handlers, error callbacks
+                                       // FastAPI: Inject model paths, API keys, ML pipeline configurations
+                                       // Ensures servers boot with exact capabilities requested by GATEWAY CONTROLLER
+  ],
+
+  '05-02 server-lifecycle': [
+    '05-02-01 START OPERATIONS',      // Startup validation and registration:
+                                      // 1. Launch server with injected capabilities
+                                      // 2. Wait for health check response (HTTP 200, stdio ready, etc.)
+                                      // 3. Notify SERVER MANAGEMENT: "Express server running on port 3001"
+                                      // 4. Return server handle to GATEWAY CONTROLLER for routing
+
+    '05-02-02 STOP OPERATIONS',       // Graceful shutdown procedure:
+                                       // 1. Send SIGTERM to server process
+                                       // 2. Wait for graceful shutdown (max 30 seconds)
+                                       // 3. Force kill if unresponsive (SIGKILL)
+                                       // 4. Notify SERVER MANAGEMENT: "Express server stopped"
+                                       // 5. Clean up temp config files and resources
+
+    '05-02-03 RESTART OPERATIONS',    // Failure recovery with capability preservation:
+                                       // 1. Detect server crash via process monitoring
+                                       // 2. Preserve original capability configuration
+                                       // 3. Re-create server with identical capabilities
+                                       // 4. Validate restart successful, update SERVER MANAGEMENT
+                                       // 5. Resume routing to restarted server
+
+    '05-02-04 MULTI-MODE OPERATION'   // CONFIG mode compliance during creation:
+                                       // HTTP Mode: Only create Express/FastAPI servers, block MCP servers
+                                       // MCP Mode: Only create MCP servers, block HTTP servers
+                                       // Gateway Mode: Create any requested server type
+                                       // GATEWAY CONTROLLER validates mode compliance before server creation
+  ],
+
+# 06 SERVER MANAGEMENT CLASS - The Real-Time Monitor
+## Narrative: Live monitoring system with specific tools and metrics
+## Think of it as a sophisticated monitoring dashboard - it tracks PIDs, ports, response times,
+## memory usage, and provides real-time "what's actually working right now" data to GATEWAY CONTROLLER.
+
+  '06-01 live-discovery': [
+    '06-01-01 PROCESS CHECKING',      // Specific process monitoring tools:
+                                      // ps -p {pid} → "Is Express server PID 1234 still alive?"
+                                      // /proc/{pid}/status → Memory usage, CPU time, thread count
+                                      // Process restart detection: PID changed = server restarted
+                                      // GATEWAY CONTROLLER checks this before routing requests
+
+    '06-01-02 PORT SCANNING',         // Active network monitoring with registry synchronization:
+                                      // netstat -tlnp | grep {port} → "Is port 3001 actually listening?"
+                                      // TCP connection test: socket.connect(host, port, timeout=1s)
+                                      // PORT_REGISTRY validation: Compare actual listening ports vs registered ports
+                                      // Port conflict resolution: Detect "reserved but not listening" → cleanup stale entries
+                                      // Discovery service: Maintain live PORT_REGISTRY.json for other processes
+                                      // GATEWAY CONTROLLER gets real-time port availability + allocation state
+
+    '06-01-03 HEALTH MONITORING'      // Server wellness validation with specific metrics:
+                                       // HTTP health checks: GET /health → 200 OK + response time (SLO: <100ms)
+                                       // MCP health checks: Send ping → expect pong within 5s (SLO: <5s)
+                                       // WebSocket health checks: Connection count, message throughput (SLO: <50ms latency)
+                                       // Metrics: CPU usage, memory, request rate, error rate (exported to Prometheus)
+                                       // Tracing: OpenTelemetry spans for request flow across servers
+                                       // Health scores: 0-100 based on response time + error rate + resource usage
+                                       // GATEWAY CONTROLLER uses health scores for routing decisions
+  ],
+
+  '06-02 capability-mapping': [
+    '06-02-01 TOOL INVENTORY',        // Live capability scanning:
+                                      // Query running MCP servers: "list available tools" → [add_note, search]
+                                      // Query Express servers: "GET /api/endpoints" → [/notes, /users, /auth]
+                                      // Combine with SERVER CAPABILITIES static definitions
+                                      // GATEWAY CONTROLLER gets real-time "what tools work right now?"
+
+    '06-02-02 UNIFIED VIEW',          // Aggregated status dashboard for GATEWAY CONTROLLER:
+                                      // "add_note: AVAILABLE (mcp-server-1 healthy)"
+                                      // "HTTP API: AVAILABLE (express-server-1, response time 50ms)"
+                                      // "Database: AVAILABLE (2 servers: express, fastapi)"
+                                      // "WebSocket: DEGRADED (server overloaded, 500ms latency)"
+
+    '06-02-03 CAPABILITY TRACKING'    // Real-time capability state changes:
+                                       // MCP server starts → Add tools to available set, notify TOOLS CLASS
+                                       // Express server crashes → Remove endpoints, redirect clients
+                                       // FastAPI server overloaded → Mark ML capabilities as "slow"
+                                       // GATEWAY CONTROLLER routing tables update automatically
+  ],
+
+  '06-03 dynamic-operations': [
+    '06-03-01 ADD SERVERS',           // Thread-safe on-demand scaling with duplicate prevention:
+                                      // GATEWAY CONTROLLER: "Need FastAPI for ML request"
+                                      // 1. Check if FastAPI already starting: Query server creation locks
+                                      // 2. If not starting: Acquire lock, call SERVER CLASS.createFastAPIServer()
+                                      // 3. If already starting: Wait for completion or timeout (30s)
+                                      // 4. Monitor startup progress, update PORT_REGISTRY + live inventory
+                                      // 5. Notify GATEWAY CONTROLLER when ready for routing
+                                      // Prevents duplicate server creation from concurrent requests
+
+    '06-03-02 REMOVE SERVERS',        // Resource optimization:
+                                       // Idle detection: "WebSocket server unused for 10 minutes"
+                                       // GATEWAY CONTROLLER approval: "Safe to shutdown WebSocket?"
+                                       // Graceful shutdown via SERVER CLASS, remove from live inventory
+                                       // Update TOOLS CLASS to remove WebSocket capabilities
+
+    '06-03-03 RESTART SERVERS'        // Automated failure recovery:
+                                       // Detect: Express server PID dead, port not responding
+                                       // Coordinate with SERVER CLASS: "Restart Express with same capabilities"
+                                       // Monitor recovery progress, validate health
+                                       // Resume routing once server healthy, maintain session continuity
+  ],
+
+# 07 TOOLS CLASS - The Dynamic Tool Registry
+## Narrative: Unified tool API that automatically updates based on running servers
+## Think of it as a smart app store - it scans available servers, discovers their tools,
+## validates compatibility, and presents a unified API to clients via GATEWAY CONTROLLER.
+## "What tools can I use?" gets instant answer based on live server capabilities.
+
+  '07-01 dynamic-tool-system': [
+    '07-01-01 TOOL REGISTRY',        // Live registry implementation with specific data structure:
+                                      // tools = {"add_note": {"server": "mcp-1", "params": ["content"], "status": "available"}}
+                                      // Auto-update: MCP server starts → scan tools → register in tools object
+                                      // Auto-cleanup: Express server stops → remove HTTP endpoints from registry
+                                      // GATEWAY CONTROLLER queries: getAvailableTools() → current tool list
+
+    '07-01-02 TOOL DISCOVERY',       // Active server capability scanning (references SERVER CAPABILITIES class):
+                                      // MCP servers: Send JSON-RPC tools/list → match against SERVER_CAPABILITIES.mcp_tools by ID
+                                      // Express servers: GET /api/endpoints → match against SERVER_CAPABILITIES.http_endpoints by ID
+                                      // NO data duplication: Import capability definitions from central registry
+                                      // "What tools are actually working right now?" = live servers × central capability registry
+
+    '07-01-03 TOOL EXECUTION',       // Unified execution API for GATEWAY CONTROLLER:
+                                      // executeTool("add_note", {content: "hello"}) → routes to appropriate server
+                                      // MCP tool: Convert to JSON-RPC → send via stdio → return response
+                                      // HTTP tool: Convert to REST API call → send HTTP request → return JSON
+                                      // WebSocket tool: Send real-time message → handle async response
+
+    '07-01-04 TOOL VALIDATION'       // Security and parameter validation:
+                                      // Schema validation: add_note requires "content" parameter (string, max 1000 chars)
+                                      // Auth validation: Check session from GATEWAY CONTROLLER → "user authorized for this tool?"
+                                      // Rate limiting: Track tool usage per session → prevent abuse
+                                      // Input sanitization: Clean parameters before sending to servers
+  ],
+
+  '07-02 tool-categories': [
+    '07-02-01 CALLABLE TOOLS',       // User-initiated tools exposed via GATEWAY CONTROLLER API:
+                                      // POST /tools/add_note {"content": "hello"} → routes to MCP server
+                                      // POST /tools/search {"query": "test"} → routes to search-enabled server
+                                      // GET /tools → returns list of available callable tools
+                                      // All tools appear as REST API regardless of backend implementation
+
+    '07-02-02 AUTOMATIC TOOLS',      // Background tools triggered by GATEWAY CONTROLLER events:
+                                      // Session start → activate auto_log tool → begin conversation logging
+                                      // Note created → activate auto_save tool → backup to persistent storage
+                                      // User idle → activate cleanup tool → archive temporary data
+                                      // Clients don't directly call these, they happen automatically
+
+    '07-02-03 SYSTEM TOOLS',         // Internal operations for GATEWAY CONTROLLER system management:
+                                      // server_health → ping all servers → return status summary
+                                      // capability_refresh → rescan server tools → update registry
+                                      // session_cleanup → remove expired sessions → free resources
+                                      // Not exposed to external clients, only for internal system use
+
+    '07-02-04 PLUGIN TOOLS'          // External service integration points:
+                                      // webhook_trigger → call external HTTP endpoint → return response
+                                      // email_send → integrate with email service → send notifications
+                                      // file_upload → integrate with cloud storage → store files
+                                      // GATEWAY CONTROLLER can extend functionality via external APIs
+  ]
+},
+
+// ============================================================================
+// CLASS 08: DATA STORAGE LAYER - HIERARCHICAL DATABASE ARCHITECTURE
+// ============================================================================
+// Location: /0x10governance/dbs/DB01_akilah_hierarchical.db
+// Purpose: Coordinate-based data location system for traceable relationships
+// Implementation: SQLite with hierarchical numbering without traditional foreign keys
+
+akilah_data_storage_layer: {
+
+  '08-00 implementation-status': 'IMPLEMENTED - DB01_akilah_hierarchical.db active',
+
+  '08-01 hierarchical-coordinate-system': {
+    'architecture': 'DB01 → T01/T02/T03 → E001/E002/E003 → coordinate-based relationships',
+    'numbering': 'DB01_T01_E001 = Database 01, Table 01, Entry 001',
+    'traceability': 'Every entry includes: hierarchical_id, session_id, instance_id',
+    'relationships': 'parent_hierarchical_id links entries across tables without foreign keys',
+    'benefits': 'Human-readable coordinates + flexible relationship tracking'
+  },
+
+  '08-02 database-tables': [
+    '08-02-01 DB01_T01_session_workspace',  // SESSION level coordination:
+                                            // hierarchical_id: DB01_T01_E001, DB01_T01_E002
+                                            // session_id: sess_20241230_001
+                                            // instance_id: inst_copilot_001
+                                            // workspace_name: runtime_alignment_engine
+                                            // conversation_history: JSON array of turns
+                                            // active_servers: JSON array of server states
+                                            // auth_token, user_role, timestamps, metadata
+
+    '08-02-02 DB01_T02_conversation_notes', // NOTE level coordination:
+                                            // hierarchical_id: DB01_T02_E001, DB01_T02_E002
+                                            // parent_hierarchical_id: DB01_T01_E001 (links to session)
+                                            // note_content, note_type (general/system/error/debug)
+                                            // conversation_turn: integer sequence number
+                                            // user_prompt, ai_response, attachments (JSON)
+                                            // session_id, instance_id, timestamps, metadata
+
+    '08-02-03 DB01_T03_server_registry',    // SERVER level coordination:
+                                            // hierarchical_id: DB01_T03_E001, DB01_T03_E002
+                                            // parent_hierarchical_id: DB01_T01_E001 (links to session)
+                                            // server_name: gateway_controller, config_manager, etc.
+                                            // port_number: 3000, 3001, 3002
+                                            // capabilities: JSON array of tool definitions
+                                            // bootstrap_status: pending/active/failed
+                                            // server_class: maps to 7-class architecture
+                                            // configuration: JSON server config, metadata
+  ],
+
+  '08-03 coordinate-based-queries': [
+    '08-03-01 FIND SESSION DATA',          // SELECT * FROM DB01_T01_session_workspace
+                                           // WHERE session_id = 'sess_20241230_001'
+                                           // Returns: Complete session context with hierarchical_id
+
+    '08-03-02 FIND RELATED NOTES',         // SELECT * FROM DB01_T02_conversation_notes
+                                           // WHERE parent_hierarchical_id = 'DB01_T01_E001'
+                                           // Returns: All notes linked to specific session
+
+    '08-03-03 FIND SESSION SERVERS',       // SELECT * FROM DB01_T03_server_registry
+                                           // WHERE parent_hierarchical_id = 'DB01_T01_E001'
+                                           // Returns: All servers active in specific session
+
+    '08-03-04 HIERARCHICAL MAP VIEW'       // SELECT FROM hierarchical_data_map
+                                           // Returns: Unified view of all data types with relationships
+                                           // Format: data_type, hierarchical_id, parent_reference
+  ],
+
+  '08-04 integration-with-7-class-architecture': {
+    'GATEWAY_CONTROLLER': 'Writes session entries to DB01_T01_session_workspace on startup',
+    'CONFIG_MANAGER': 'Reads DB01_T03_server_registry for server states and configuration',
+    'PROTOCOL_LAYER': 'Logs communication events to DB01_T02_conversation_notes',
+    'SERVER_CAPABILITIES': 'Updates capabilities JSON in DB01_T03_server_registry',
+    'SERVER_CLASS': 'References server_class field in DB01_T03_server_registry',
+    'SERVER_MANAGEMENT': 'Updates bootstrap_status and health_check timestamps',
+    'TOOLS_CLASS': 'Creates tool execution entries in conversation_notes'
+  },
+
+  '08-05 migration-from-existing-database': {
+    'current_database': '/akilahclientgateway/app.akilah.db',
+    'existing_tables': 'notes table (28 entries), table99_logs (comprehensive logging)',
+    'migration_strategy': 'Transfer existing notes to DB01_T02 with new hierarchical_id system',
+    'session_reconstruction': 'Group notes by session_id → create DB01_T01 entries',
+    'preservation': 'Maintain all original data with enhanced coordinate system'
+  }
+},
+
+  ---
