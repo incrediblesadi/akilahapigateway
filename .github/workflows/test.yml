@@ -3,8 +3,14 @@ name: Test
 on:
   push:
     branches: [ main ]
+    paths-ignore:
+      - '**/*.md'
+      - 'DASHBOARD-BRANCH-README.markdown'
   pull_request:
     branches: [ main ]
+    paths-ignore:
+      - '**/*.md'
+      - 'DASHBOARD-BRANCH-README.markdown'
 
 jobs:
   test:
